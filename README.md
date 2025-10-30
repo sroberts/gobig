@@ -1,0 +1,340 @@
+# gobig
+
+A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.
+
+## Features
+
+- 📝 **Simple Markdown**: Write presentations in familiar markdown syntax
+- 🎨 **Three Themes**: Dark, light, and white themes included
+- 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
+- 🗣️ **Speaker Notes**: Hidden notes in HTML comments
+- 📦 **Single Binary**: No dependencies, just one executable
+- 🔒 **Self-Contained**: Generates single HTML file with embedded assets
+- 🖼️ **Image Support**: Auto-converts local images to base64 data URIs
+
+## Installation
+
+### From Source
+
+```bash
+git clone https://github.com/yourusername/gobig.git
+cd gobig
+make install
+```
+
+Or build for your platform:
+
+```bash
+make build
+# Binary will be in bin/gobig
+```
+
+### Cross-Compilation
+
+Build for all platforms:
+
+```bash
+make build-all
+```
+
+This creates binaries for:
+- Linux (amd64, arm64)
+- macOS (amd64, arm64)
+- Windows (amd64)
+
+## Quick Start
+
+1. Create a markdown file (`presentation.md`):
+
+```markdown
+# My Presentation
+
+Welcome to my talk!
+
+---
+
+## Agenda
+
+- Topic 1
+- Topic 2
+- Topic 3
+
+---
+
+## Thank You!
+```
+
+2. Generate the presentation:
+
+```bash
+gobig -o index.html presentation.md
+```
+
+3. Open `index.html` in a browser and present!
+
+## Usage
+
+```bash
+gobig [options] <input.md>
+```
+
+### Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-o <file>` | Output HTML file | stdout |
+| `-theme <name>` | Theme: dark, light, or white | dark |
+| `-aspect-ratio <ratio>` | Aspect ratio (number or "false") | 1.6 |
+| `-title <title>` | Presentation title | From first slide |
+| `-version` | Show version information | - |
+| `-help` | Show help message | - |
+
+### Examples
+
+```bash
+# Output to stdout
+gobig presentation.md
+
+# Save to file
+gobig -o slides.html presentation.md
+
+# Use light theme
+gobig -theme light -o output.html presentation.md
+
+# Custom aspect ratio and title
+gobig -aspect-ratio 2 -title "My Amazing Talk" -o slides.html talk.md
+
+# Disable aspect ratio locking
+gobig -aspect-ratio false -o output.html slides.md
+```
+
+## Markdown Syntax
+
+### Slides
+
+Separate slides with horizontal rules (`---`):
+
+```markdown
+# First Slide
+
+Content here
+
+---
+
+# Second Slide
+
+More content
+
+---
+
+# Third Slide
+```
+
+### Speaker Notes
+
+Add speaker notes using HTML comments:
+
+```markdown
+# My Slide
+
+Visible content
+
+<!--
+This is a speaker note.
+It will appear in the browser console when presenting.
+Multi-line notes are supported!
+-->
+```
+
+### Slide Metadata
+
+Add metadata to slides using YAML frontmatter in comments:
+
+```markdown
+<!-- slide
+layout: 50-50
+class: custom-class
+time-to-next: 10
+-->
+
+# Slide with Metadata
+```
+
+Available metadata fields:
+
+- `layout`: Grid layout (see Layouts section)
+- `class`: Custom CSS class for the slide
+- `body-style`: Custom CSS for the body element
+- `body-class`: Custom class for the body element
+- `time-to-next`: Auto-advance time in seconds
+
+### Layouts
+
+Grid-based layouts for complex slides:
+
+#### 50-50 (Two Columns)
+
+```markdown
+<!-- slide
+layout: 50-50
+-->
+
+![Image](image.jpg)
+
+## Description
+
+Text appears next to the image.
+```
+
+#### Other Built-in Layouts
+
+| Layout | Description |
+|--------|-------------|
+| `50-50` | Two equal columns |
+| `75-25` | 75% left, 25% right columns |
+| `25-75` | 25% left, 75% right columns |
+| `50-50-rows` | Two equal rows |
+| `75-25-rows` | 75% top, 25% bottom rows |
+| `25-75-rows` | 25% top, 75% bottom rows |
+| `grid-3x2` | 3 columns, 2 rows |
+| `grid-2x3` | 2 columns, 3 rows |
+
+#### Custom Layouts
+
+Use custom CSS Grid syntax:
+
+```markdown
+<!-- slide
+layout: grid-template-columns: 1fr 2fr 1fr;
+-->
+
+Content split into custom grid
+```
+
+### Standard Markdown
+
+All GitHub Flavored Markdown (GFM) is supported:
+
+```markdown
+# Headings
+
+## Subheadings
+
+**Bold** and *italic* text
+
+- Bullet lists
+- With items
+
+1. Numbered lists
+2. Also work
+
+> Blockquotes
+
+`inline code` and
+
+\`\`\`javascript
+// Code blocks
+function demo() {
+  return "with syntax highlighting";
+}
+\`\`\`
+
+| Tables | Work |
+|--------|------|
+| Too | ! |
+
+~~Strikethrough~~
+
+[Links](https://example.com)
+
+![Images](image.jpg)
+```
+
+## Presentation Controls
+
+Once you've generated your HTML presentation, use these controls:
+
+### Navigation
+
+- **Left/Up/PageUp**: Previous slide
+- **Right/Down/PageDown**: Next slide
+- **Click**: Next slide (unless clicking a link)
+- **Swipe**: Navigate on touch devices
+
+### Modes
+
+- **t**: Talk mode (default, single slide)
+- **p**: Print mode (2 slides per page with notes)
+- **j**: Jump mode (grid overview)
+
+### Direct Navigation
+
+- Navigate to specific slides using hash: `presentation.html#5`
+- In jump mode, use arrow keys and Enter
+
+### Speaker Notes
+
+- Open browser developer console (F12 or Cmd+Option+I)
+- Notes appear in console for each slide
+- Use a second screen to view notes while presenting
+
+## Examples
+
+See the `examples/` directory for sample presentations:
+
+- `basic.md` - Simple presentation demonstrating core features
+- `advanced.md` - Advanced features including layouts, notes, and customization
+
+Generate the examples:
+
+```bash
+gobig -o basic.html examples/basic.md
+gobig -theme light -o advanced.html examples/advanced.md
+```
+
+## Project Structure
+
+```
+gobig/
+├── cmd/gobig/          # CLI application
+├── internal/
+│   ├── assets/         # Embedded big.js files
+│   ├── parser/         # Markdown parsing
+│   └── generator/      # HTML generation
+├── examples/           # Example presentations
+├── Makefile           # Build automation
+└── README.md
+```
+
+## How It Works
+
+1. **Parse**: Splits markdown on `---` into individual slides
+2. **Extract**: Pulls out YAML frontmatter and speaker notes
+3. **Convert**: Transforms markdown to HTML using goldmark
+4. **Layout**: Applies CSS Grid layouts based on metadata
+5. **Embed**: Bundles big.js, big.css, and theme into single HTML
+6. **Encode**: Converts local images to base64 data URIs
+7. **Generate**: Creates complete, self-contained HTML file
+
+## Credits
+
+- [big.js](https://github.com/tmcw/big) by Tom MacWright - The presentation framework
+- [goldmark](https://github.com/yuin/goldmark) - Markdown parsing
+- Built with Go
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Contributing
+
+Contributions welcome! Please feel free to submit issues and pull requests.
+
+## Roadmap
+
+- [ ] Custom CSS injection
+- [ ] Template support
+- [ ] Watch mode for live reloading
+- [ ] PDF export
+- [ ] Syntax highlighting themes
+- [ ] Video/audio embedding
