@@ -1,5 +1,10 @@
 # gobig
 
+[![Release](https://img.shields.io/github/v/release/sroberts/gobig)](https://github.com/sroberts/gobig/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/sroberts/gobig/release.yml?branch=main)](https://github.com/sroberts/gobig/actions)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/sroberts/gobig)](https://go.dev/)
+[![License](https://img.shields.io/github/license/sroberts/gobig)](LICENSE)
+
 A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.
 
 ## Features
@@ -14,10 +19,21 @@ A command-line tool to generate [big.js](https://github.com/tmcw/big) presentati
 
 ## Installation
 
+### Download Binary (Recommended)
+
+Download the latest release for your platform from the [releases page](https://github.com/sroberts/gobig/releases).
+
+**Available platforms:**
+- Linux (amd64, arm64)
+- macOS (amd64/Intel, arm64/Apple Silicon)
+- Windows (amd64)
+
+Each release includes SHA256 checksums for verification.
+
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/gobig.git
+git clone https://github.com/sroberts/gobig.git
 cd gobig
 make install
 ```

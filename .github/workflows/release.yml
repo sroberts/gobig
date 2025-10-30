@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Bump version and create tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          release_branches: main
+
+      - name: Build binaries
+        env:
+          VERSION: ${{ steps.tag_version.outputs.new_tag }}
+        run: |
+          # Build for all platforms
+          mkdir -p dist
+
+          # Linux amd64
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION} -s -w" -o dist/gobig-linux-amd64 ./cmd/gobig
+
+          # Linux arm64
+          GOOS=linux GOARCH=arm64 go build -ldflags "-X main.version=${VERSION} -s -w" -o dist/gobig-linux-arm64 ./cmd/gobig
+
+          # macOS amd64
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION} -s -w" -o dist/gobig-darwin-amd64 ./cmd/gobig
+
+          # macOS arm64
+          GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=${VERSION} -s -w" -o dist/gobig-darwin-arm64 ./cmd/gobig
+
+          # Windows amd64
+          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=${VERSION} -s -w" -o dist/gobig-windows-amd64.exe ./cmd/gobig
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          artifacts: "dist/*"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true
+          makeLatest: true
