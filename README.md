@@ -11,6 +11,7 @@ A command-line tool to generate [big.js](https://github.com/tmcw/big) presentati
 
 - 📝 **Simple Markdown**: Write presentations in familiar markdown syntax
 - 🎨 **Three Themes**: Dark, light, and white themes included
+- 🎨 **Custom CSS**: Override colors and fonts with your own CSS file
 - 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
 - 🗣️ **Speaker Notes**: Hidden notes in HTML comments
 - 📦 **Single Binary**: No dependencies, just one executable
@@ -100,6 +101,7 @@ gobig [options] <input.md>
 |------|-------------|---------|
 | `-o <file>` | Output HTML file | stdout |
 | `-theme <name>` | Theme: dark, light, or white | dark |
+| `-custom-css <file>` | Path to custom CSS file | - |
 | `-aspect-ratio <ratio>` | Aspect ratio (number or "false") | 1.6 |
 | `-title <title>` | Presentation title | From first slide |
 | `-version` | Show version information | - |
@@ -117,12 +119,76 @@ gobig -o slides.html presentation.md
 # Use light theme
 gobig -theme light -o output.html presentation.md
 
+# Use custom CSS for theme customization
+gobig -custom-css custom-theme.css -o output.html presentation.md
+
+# Combine built-in theme with custom CSS
+gobig -theme light -custom-css my-styles.css -o output.html presentation.md
+
 # Custom aspect ratio and title
 gobig -aspect-ratio 2 -title "My Amazing Talk" -o slides.html talk.md
 
 # Disable aspect ratio locking
 gobig -aspect-ratio false -o output.html slides.md
 ```
+
+## Custom Themes
+
+You can customize the appearance of your presentations by providing a custom CSS file. The custom CSS will be applied after the built-in theme CSS, allowing you to override or extend the default styles.
+
+### Using Custom CSS
+
+Create a CSS file with your custom styles:
+
+```css
+/* custom-theme.css */
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  font-family: 'Georgia', serif;
+}
+
+h1, h2, h3 {
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+em {
+  color: #00ffff;
+}
+
+a {
+  color: #ffff00;
+}
+```
+
+Then use it with the `-custom-css` flag:
+
+```bash
+gobig -custom-css custom-theme.css -o presentation.html slides.md
+```
+
+### Combining Built-in Themes with Custom CSS
+
+You can start with a built-in theme (dark, light, or white) and customize specific elements:
+
+```bash
+# Start with light theme, then apply custom styles
+gobig -theme light -custom-css tweaks.css -o output.html slides.md
+```
+
+This approach allows you to:
+- Override specific colors or fonts
+- Add custom styling for specific elements
+- Maintain the base structure of a built-in theme while customizing its appearance
+
+### Example Custom CSS
+
+See `examples/custom-theme.css` for a complete example demonstrating:
+- Custom background gradients
+- Custom fonts and colors
+- Styled code blocks and links
+- Enhanced headings with text shadows
 
 ## Markdown Syntax
 
@@ -440,12 +506,14 @@ See the `examples/` directory for sample presentations:
 
 - `basic.md` - Simple presentation demonstrating core features
 - `advanced.md` - Advanced features including layouts, notes, and customization
+- `custom-theme.css` - Example custom CSS theme with gradient background
 
 Generate the examples:
 
 ```bash
 gobig -o basic.html examples/basic.md
 gobig -theme light -o advanced.html examples/advanced.md
+gobig -custom-css examples/custom-theme.css -o custom.html examples/basic.md
 ```
 
 ## Project Structure
@@ -488,7 +556,7 @@ Contributions welcome! Please feel free to submit issues and pull requests.
 
 ## Roadmap
 
-- [ ] Custom CSS injection
+- [x] Custom CSS injection
 - [ ] Template support
 - [ ] Watch mode for live reloading
 - [ ] PDF export

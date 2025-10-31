@@ -18,6 +18,7 @@ var (
 	theme       = flag.String("theme", "dark", "Theme: dark, light, or white")
 	aspectRatio = flag.String("aspect-ratio", "1.6", "Aspect ratio (e.g., 1.6, 2, false)")
 	title       = flag.String("title", "", "Presentation title (default: from first slide)")
+	customCSS   = flag.String("custom-css", "", "Path to custom CSS file for theme customization")
 	showVersion = flag.Bool("version", false, "Show version information")
 	showHelp    = flag.Bool("help", false, "Show help message")
 )
@@ -83,6 +84,7 @@ func run(inputFile string) error {
 		Title:                *title,
 		AspectRatio:          *aspectRatio,
 		BasePath:             basePath,
+		CustomCSSPath:        *customCSS,
 		PresentationMetadata: presentationMetadata,
 	}
 
@@ -118,6 +120,7 @@ Options:
   -theme <name>          Theme: dark, light, or white (default: dark)
   -aspect-ratio <ratio>  Aspect ratio: number or "false" to disable (default: 1.6)
   -title <title>         Presentation title (default: from first slide)
+  -custom-css <file>     Path to custom CSS file for theme customization
   -version               Show version information
   -help                  Show this help message
 
@@ -125,6 +128,7 @@ Examples:
   gobig -o index.html presentation.md
   gobig -theme light -o output.html slides.md
   gobig -aspect-ratio 2 -title "My Talk" -o slides.html talk.md
+  gobig -custom-css custom.css -o slides.html presentation.md
 
 Markdown Syntax:
   Slides:      Separate with --- (horizontal rule)

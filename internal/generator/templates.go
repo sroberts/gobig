@@ -16,7 +16,7 @@ const htmlTemplate = `<!DOCTYPE html>
   </style>
   <style>
 %s
-  </style>
+  </style>%s
   %s
   <script>
 %s
@@ -28,13 +28,20 @@ const htmlTemplate = `<!DOCTYPE html>
 </html>`
 
 // generateHTML generates the complete HTML document
-func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, themeClass, slides string) string {
+func generateHTML(title, bigCSS, themeCSS, customCSS, aspectRatioScript, bigJS, themeClass, slides string) string {
+	// Format custom CSS with style tags if present
+	customCSSBlock := ""
+	if customCSS != "" {
+		customCSSBlock = fmt.Sprintf("\n  <style>\n%s\n  </style>", customCSS)
+	}
+
 	return fmt.Sprintf(
 		htmlTemplate,
 		title,
 		bigCSS,
 		themeCSS,
-		customCSS,
+		customCSSBlock,
+		aspectRatioScript,
 		bigJS,
 		themeClass,
 		slides,

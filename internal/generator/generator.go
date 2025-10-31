@@ -24,6 +24,7 @@ type Options struct {
 	Title                string                         // Presentation title
 	AspectRatio          string                         // Aspect ratio (e.g., "1.6", "2", "false")
 	BasePath             string                         // Base path for resolving relative image paths
+	CustomCSSPath        string                         // Path to custom CSS file
 	PresentationMetadata parserPkg.PresentationMetadata // Presentation-level metadata
 }
 
@@ -80,6 +81,16 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		return "", fmt.Errorf("failed to get theme: %w", err)
 	}
 
+	// Load custom CSS if provided
+	var customCSS string
+	if g.options.CustomCSSPath != "" {
+		cssData, err := os.ReadFile(g.options.CustomCSSPath)
+		if err != nil {
+			return "", fmt.Errorf("failed to read custom CSS file: %w", err)
+		}
+		customCSS = string(cssData)
+	}
+
 	// Generate slides HTML
 	slidesHTML := g.generateSlides(slides)
 
@@ -100,6 +111,7 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		title,
 		bigCSS,
 		themeCSS,
+		customCSS,
 		aspectRatioScript,
 		bigJS,
 		g.options.Theme,
