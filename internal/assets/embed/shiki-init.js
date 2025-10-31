@@ -35,11 +35,21 @@
         }
         
         try {
-          // Highlight the code
-          const html = await shiki.codeToHtml(code, {
-            lang: lang,
-            theme: theme
-          });
+          // Highlight the code with fallback to 'text' for unsupported languages
+          let html;
+          try {
+            html = await shiki.codeToHtml(code, {
+              lang: lang,
+              theme: theme
+            });
+          } catch (langErr) {
+            // If language is not supported, try with 'text' as fallback
+            console.warn(`Shiki: Language '${lang}' not supported, using 'text' as fallback`);
+            html = await shiki.codeToHtml(code, {
+              lang: 'text',
+              theme: theme
+            });
+          }
           
           // Replace the pre element
           const tempDiv = document.createElement('div');
@@ -53,7 +63,7 @@
           
           pre.replaceWith(newPre);
         } catch (err) {
-          console.warn(`Shiki: Could not highlight ${lang}:`, err.message);
+          console.warn(`Shiki: Could not highlight code block:`, err.message);
           // Keep original code block if highlighting fails
         }
       }
