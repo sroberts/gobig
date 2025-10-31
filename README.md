@@ -183,7 +183,147 @@ Available metadata fields:
 - `class`: Custom CSS class for the slide
 - `body-style`: Custom CSS for the body element
 - `body-class`: Custom class for the body element
-- `time-to-next`: Auto-advance time in seconds
+- `time-to-next`: Auto-advance time in seconds (overrides presentation default if set)
+
+### Presentation Metadata
+
+Add presentation-wide metadata at the beginning of your markdown file using YAML frontmatter in comments. This must appear before any slide separators (`---`):
+
+```markdown
+<!-- presentation
+time-to-next: 5
+title: My Presentation
+-->
+
+# First Slide
+
+Content starts here...
+
+---
+
+# Second Slide
+
+All slides will auto-advance after 5 seconds
+```
+
+Available presentation metadata fields:
+
+- `time-to-next`: Default auto-advance time in seconds for all slides
+- `title`: Presentation title (overrides `-title` flag)
+
+**Note:** Per-slide `time-to-next` values override the presentation-level default. This allows you to set a default timing for all slides while customizing individual slides as needed.
+
+#### Auto-Advance Example
+
+Set a default timing for all slides, with specific slides overriding:
+
+```markdown
+<!-- presentation
+time-to-next: 5
+-->
+
+# Slide 1
+Advances after 5 seconds (default)
+
+---
+
+# Slide 2
+Also advances after 5 seconds (default)
+
+---
+
+<!-- slide
+time-to-next: 10
+-->
+
+# Slide 3
+Overrides default - advances after 10 seconds
+
+---
+
+# Slide 4
+No slide-level setting - uses default of 5 seconds
+```
+
+This is perfect for **PechaKucha** or **Ignite** style presentations where most slides need consistent timing!
+
+#### Common Timing Patterns
+
+Different presentation formats have standard timing requirements:
+
+**PechaKucha (20x20)**
+```markdown
+<!-- presentation
+time-to-next: 20
+-->
+```
+20 slides, 20 seconds each = 6 minutes 40 seconds total
+
+**Ignite (5x15)**
+```markdown
+<!-- presentation
+time-to-next: 15
+-->
+```
+20 slides, 15 seconds each = 5 minutes total
+
+**Custom Format**
+```markdown
+<!-- presentation
+time-to-next: 30
+-->
+
+# Most slides advance after 30 seconds
+
+---
+
+<!-- slide
+time-to-next: 60
+-->
+
+# Important slide - give audience more time
+
+---
+
+<!-- slide
+time-to-next: 5
+-->
+
+# Quick transition slide
+```
+
+#### Timing Tips and Best Practices
+
+**When to Use Presentation-Level Timing:**
+- Consistent pacing across most slides
+- Format-specific presentations (PechaKucha, Ignite)
+- Training materials with regular intervals
+- Demo presentations with synchronized narration
+
+**When to Use Slide-Level Overrides:**
+- Title/introduction slides (often longer)
+- Complex diagrams that need more viewing time
+- Quick transition or section divider slides
+- Q&A or discussion slides (can use longer times)
+
+**Manual Control:**
+- Navigation keys (arrow keys, page up/down) work even with auto-advance enabled
+- Useful for pausing to answer questions during presentation
+- Last slide typically won't advance (no next slide to go to)
+
+**Testing Your Timing:**
+```bash
+# Generate and open your timed presentation
+gobig -o timed-presentation.html presentation.md
+open timed-presentation.html  # macOS
+# or: xdg-open timed-presentation.html  # Linux
+# or: start timed-presentation.html     # Windows
+```
+
+**Disabling Auto-Advance:**
+- Omit `time-to-next` entirely for manual-only navigation
+- Use slide-level metadata to disable for specific slides
+- Navigate manually during presentation to override timing
 
 ### Layouts
 
@@ -380,13 +520,13 @@ gobig/
 
 ## How It Works
 
-1. **Parse**: Splits markdown on `---` into individual slides
-2. **Extract**: Pulls out YAML frontmatter and speaker notes
+1. **Parse**: Extracts presentation metadata, then splits markdown on `---` into individual slides
+2. **Extract**: Pulls out YAML frontmatter and speaker notes from each slide
 3. **Convert**: Transforms markdown to HTML using goldmark
 4. **Layout**: Applies CSS Grid layouts based on metadata
 5. **Embed**: Bundles big.js, big.css, and theme into single HTML
 6. **Encode**: Converts local images to base64 data URIs
-7. **Generate**: Creates complete, self-contained HTML file
+7. **Generate**: Creates complete, self-contained HTML file with cascaded timing settings
 
 ## Credits
 

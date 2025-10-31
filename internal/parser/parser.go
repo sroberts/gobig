@@ -11,6 +11,9 @@ import (
 )
 
 var (
+	// Regex to match presentation frontmatter: <!-- presentation ... -->
+	presentationFrontmatterRegex = regexp.MustCompile(`(?s)^\s*<!--\s*presentation\s+(.*?)\s*-->`)
+
 	// Regex to match slide frontmatter: <!-- slide ... -->
 	slideFrontmatterRegex = regexp.MustCompile(`(?s)<!--\s*slide\s+(.*?)\s*-->`)
 
@@ -20,13 +23,15 @@ var (
 
 // Parser handles parsing markdown files into slides
 type Parser struct {
-	slides []*Slide
+	slides               []*Slide
+	presentationMetadata PresentationMetadata
 }
 
 // NewParser creates a new parser instance
 func NewParser() *Parser {
 	return &Parser{
-		slides: make([]*Slide, 0),
+		slides:               make([]*Slide, 0),
+		presentationMetadata: PresentationMetadata{},
 	}
 }
 
@@ -42,6 +47,9 @@ func (p *Parser) ParseFile(filename string) error {
 
 // ParseString parses markdown content from a string
 func (p *Parser) ParseString(content string) error {
+	// Extract presentation-level frontmatter first
+	content = p.extractPresentationFrontmatter(content)
+
 	// Split on horizontal rules (---)
 	// We need to be careful to only split on standalone ---
 	slideContents := splitOnHorizontalRule(content)
@@ -68,6 +76,31 @@ func (p *Parser) ParseString(content string) error {
 // GetSlides returns all parsed slides
 func (p *Parser) GetSlides() []*Slide {
 	return p.slides
+}
+
+// GetPresentationMetadata returns the presentation-level metadata
+func (p *Parser) GetPresentationMetadata() PresentationMetadata {
+	return p.presentationMetadata
+}
+
+// extractPresentationFrontmatter extracts and parses presentation-level YAML frontmatter
+func (p *Parser) extractPresentationFrontmatter(content string) string {
+	matches := presentationFrontmatterRegex.FindStringSubmatch(content)
+	if len(matches) > 1 {
+		yamlContent := matches[1]
+
+		// Parse YAML
+		err := yaml.Unmarshal([]byte(yamlContent), &p.presentationMetadata)
+		if err != nil {
+			// If YAML parsing fails, just ignore the frontmatter
+			fmt.Fprintf(os.Stderr, "Warning: failed to parse presentation metadata: %v\n", err)
+		}
+
+		// Remove frontmatter from content
+		content = presentationFrontmatterRegex.ReplaceAllString(content, "")
+	}
+
+	return content
 }
 
 // parseSlide parses a single slide's content

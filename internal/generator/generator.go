@@ -21,10 +21,11 @@ import (
 
 // Options contains configuration for HTML generation
 type Options struct {
-	Theme       string // "dark", "light", or "white"
-	Title       string // Presentation title
-	AspectRatio string // Aspect ratio (e.g., "1.6", "2", "false")
-	BasePath    string // Base path for resolving relative image paths
+	Theme                string                         // "dark", "light", or "white"
+	Title                string                         // Presentation title
+	AspectRatio          string                         // Aspect ratio (e.g., "1.6", "2", "false")
+	BasePath             string                         // Base path for resolving relative image paths
+	PresentationMetadata parserPkg.PresentationMetadata // Presentation-level metadata
 }
 
 // Generator handles HTML generation from parsed slides
@@ -138,9 +139,15 @@ func (g *Generator) generateSlide(slide *parserPkg.Slide) string {
 	sb.WriteString("  <div")
 
 	// Add data attributes
-	if slide.Metadata.TimeToNext > 0 {
-		sb.WriteString(fmt.Sprintf(` data-time-to-next="%d"`, slide.Metadata.TimeToNext))
+	// Determine time-to-next: slide-level overrides presentation-level
+	timeToNext := slide.Metadata.TimeToNext
+	if timeToNext == 0 && g.options.PresentationMetadata.TimeToNext > 0 {
+		timeToNext = g.options.PresentationMetadata.TimeToNext
 	}
+	if timeToNext > 0 {
+		sb.WriteString(fmt.Sprintf(` data-time-to-next="%d"`, timeToNext))
+	}
+
 	if slide.Metadata.BodyStyle != "" {
 		sb.WriteString(fmt.Sprintf(` data-body-style="%s"`, escapeAttr(slide.Metadata.BodyStyle)))
 	}
