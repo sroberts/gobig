@@ -52,15 +52,15 @@ const htmlTemplate = `<!DOCTYPE html>
 func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, mermaidJS, theme, themeClass, slides string) string {
 	return fmt.Sprintf(
 		htmlTemplate,
-		title,     // %s - title
-		bigCSS,    // %s - big.css
-		themeCSS,  // %s - theme CSS
-		customCSS, // %s - aspect ratio script
-		bigJS,     // %s - big.js
-		mermaidJS, // %s - mermaid.js
-		theme,     // %s - theme for mermaid initialization
+		title,      // %s - title
+		bigCSS,     // %s - big.css
+		themeCSS,   // %s - theme CSS
+		customCSS,  // %s - aspect ratio script
+		bigJS,      // %s - big.js
+		mermaidJS,  // %s - mermaid.js
+		theme,      // %s - theme for mermaid initialization
 		themeClass, // %s - body class
-		slides,    // %s - slides HTML
+		slides,     // %s - slides HTML
 	)
 }
 
