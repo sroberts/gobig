@@ -83,8 +83,15 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 	// Generate slides HTML
 	slidesHTML := g.generateSlides(slides)
 
-	// Determine title (use first slide's text if not specified)
-	title := g.options.Title
+	// Determine title with priority:
+	// 1. Presentation metadata (overrides flag)
+	// 2. Command-line flag
+	// 3. First slide's text
+	// 4. Default "Presentation"
+	title := g.options.PresentationMetadata.Title
+	if title == "" {
+		title = g.options.Title
+	}
 	if title == "" && len(slides) > 0 {
 		title = extractTitle(slides[0].Content)
 	}
