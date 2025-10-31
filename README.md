@@ -182,7 +182,69 @@ Available metadata fields:
 - `class`: Custom CSS class for the slide
 - `body-style`: Custom CSS for the body element
 - `body-class`: Custom class for the body element
-- `time-to-next`: Auto-advance time in seconds
+- `time-to-next`: Auto-advance time in seconds (overrides presentation default if set)
+
+### Presentation Metadata
+
+Add presentation-wide metadata at the beginning of your markdown file using YAML frontmatter in comments. This must appear before any slide separators (`---`):
+
+```markdown
+<!-- presentation
+time-to-next: 5
+title: My Presentation
+-->
+
+# First Slide
+
+Content starts here...
+
+---
+
+# Second Slide
+
+All slides will auto-advance after 5 seconds
+```
+
+Available presentation metadata fields:
+
+- `time-to-next`: Default auto-advance time in seconds for all slides
+- `title`: Presentation title (overrides `-title` flag)
+
+**Note:** Per-slide `time-to-next` values override the presentation-level default. This allows you to set a default timing for all slides while customizing individual slides as needed.
+
+#### Auto-Advance Example
+
+Set a default timing for all slides, with specific slides overriding:
+
+```markdown
+<!-- presentation
+time-to-next: 5
+-->
+
+# Slide 1
+Advances after 5 seconds (default)
+
+---
+
+# Slide 2
+Also advances after 5 seconds (default)
+
+---
+
+<!-- slide
+time-to-next: 10
+-->
+
+# Slide 3
+Overrides default - advances after 10 seconds
+
+---
+
+# Slide 4
+No slide-level setting - uses default of 5 seconds
+```
+
+This is perfect for **PechaKucha** or **Ignite** style presentations where most slides need consistent timing!
 
 ### Layouts
 
@@ -324,13 +386,13 @@ gobig/
 
 ## How It Works
 
-1. **Parse**: Splits markdown on `---` into individual slides
-2. **Extract**: Pulls out YAML frontmatter and speaker notes
+1. **Parse**: Extracts presentation metadata, then splits markdown on `---` into individual slides
+2. **Extract**: Pulls out YAML frontmatter and speaker notes from each slide
 3. **Convert**: Transforms markdown to HTML using goldmark
 4. **Layout**: Applies CSS Grid layouts based on metadata
 5. **Embed**: Bundles big.js, big.css, and theme into single HTML
 6. **Encode**: Converts local images to base64 data URIs
-7. **Generate**: Creates complete, self-contained HTML file
+7. **Generate**: Creates complete, self-contained HTML file with cascaded timing settings
 
 ## Credits
 

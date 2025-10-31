@@ -9,6 +9,12 @@ type SlideMetadata struct {
 	TimeToNext  int    `yaml:"time-to-next"` // Auto-advance time in seconds
 }
 
+// PresentationMetadata represents presentation-level metadata
+type PresentationMetadata struct {
+	Title      string `yaml:"title"`        // Presentation title
+	TimeToNext int    `yaml:"time-to-next"` // Default auto-advance time for all slides
+}
+
 // Slide represents a single presentation slide
 type Slide struct {
 	Metadata SlideMetadata // Parsed frontmatter
