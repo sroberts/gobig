@@ -18,11 +18,21 @@ const htmlTemplate = `<!DOCTYPE html>
 %s
   </style>
   <style>
-    /* Mermaid diagram styling */
+    /* Mermaid diagram styling - fill available space like images */
+    div.slide > .mermaid:only-child {
+      width: 100%%;
+      height: 100%%;
+    }
     .mermaid {
       display: flex;
       justify-content: center;
       align-items: center;
+    }
+    .mermaid svg {
+      max-width: 100%% !important;
+      max-height: 100%% !important;
+      width: auto !important;
+      height: auto !important;
     }
   </style>
   %s
