@@ -31,6 +31,8 @@ addEventListener("load", () => {
   let timeoutInterval,
     presenterWindow = null,
     presenterStartTime = null,
+    presenterTimerInterval = null,
+    presenterCheckInterval = null,
     { body } = document,
     {
       className: initialBodyClass,
@@ -273,24 +275,24 @@ addEventListener("load", () => {
     `);
     presenterWindow.document.close();
     
-    // Set up timer updates
-    setInterval(() => {
-      if (presenterWindow && !presenterWindow.closed) {
+    // Clear any existing intervals
+    if (presenterTimerInterval) clearInterval(presenterTimerInterval);
+    if (presenterCheckInterval) clearInterval(presenterCheckInterval);
+    
+    // Combined interval for timer updates and window check
+    presenterTimerInterval = setInterval(() => {
+      if (!presenterWindow || presenterWindow.closed) {
+        presenterWindow = null;
+        presenterStartTime = null;
+        clearInterval(presenterTimerInterval);
+        presenterTimerInterval = null;
+      } else {
         updatePresenterTimers();
       }
     }, 1000);
     
     // Update presenter view with current slide
     setTimeout(() => updatePresenterView(), 100);
-    
-    // Monitor if presenter window is closed
-    let checkClosed = setInterval(() => {
-      if (!presenterWindow || presenterWindow.closed) {
-        presenterWindow = null;
-        presenterStartTime = null;
-        clearInterval(checkClosed);
-      }
-    }, 1000);
   }
 
   function updatePresenterTimers() {
@@ -343,11 +345,13 @@ addEventListener("load", () => {
         iframe.style.height = "500px";
         iframe.style.transform = "scale(0.5)";
         currentSlideEl.appendChild(iframe);
+        const styleEl = document.querySelector("style");
+        const styles = styleEl ? styleEl.textContent : "";
         iframe.contentDocument.write(`
           <html>
           <head>
             <style>
-              ${document.querySelector("style").textContent}
+              ${styles}
               body { margin: 0; padding: 0; }
             </style>
           </head>
@@ -371,11 +375,13 @@ addEventListener("load", () => {
         iframe.style.height = "500px";
         iframe.style.transform = "scale(0.5)";
         nextSlideEl.appendChild(iframe);
+        const styleEl = document.querySelector("style");
+        const styles = styleEl ? styleEl.textContent : "";
         iframe.contentDocument.write(`
           <html>
           <head>
             <style>
-              ${document.querySelector("style").textContent}
+              ${styles}
               body { margin: 0; padding: 0; }
             </style>
           </head>
@@ -395,8 +401,18 @@ addEventListener("load", () => {
     if (notesEl) {
       const currentNotes = slideDivs[currentIdx]._notes;
       if (currentNotes && currentNotes.length > 0) {
-        notesEl.innerHTML = currentNotes.map(note => `<p>${note}</p>`).join('<br>');
+        // Clear existing content
+        notesEl.innerHTML = "";
         notesEl.className = "notes-content";
+        // Safely add notes as text nodes to prevent XSS
+        currentNotes.forEach((note, i) => {
+          const p = doc.createElement("p");
+          p.textContent = note;
+          notesEl.appendChild(p);
+          if (i < currentNotes.length - 1) {
+            notesEl.appendChild(doc.createElement("br"));
+          }
+        });
       } else {
         notesEl.textContent = "No speaker notes for this slide";
         notesEl.className = "notes-content no-notes";
