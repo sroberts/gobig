@@ -4,8 +4,17 @@ import (
 	"fmt"
 )
 
-// htmlTemplate is the base HTML structure for the presentation
-const htmlTemplate = `<!DOCTYPE html>
+// generateHTML generates the complete HTML document
+func generateHTML(title, bigCSS, themeCSS, codeBlocksCSS, customCSS, bigJS, shikiJS, themeClass, slides string) string {
+	// Build shiki script tag if shikiJS is provided
+	shikiScriptTag := ""
+	if shikiJS != "" {
+		shikiScriptTag = fmt.Sprintf(`  <script type="module">
+%s
+  </script>`, shikiJS)
+	}
+
+	htmlTemplate := `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -24,17 +33,13 @@ const htmlTemplate = `<!DOCTYPE html>
   <script>
 %s
   </script>
-  <script type="module">
 %s
-  </script>
 </head>
 <body class="%s">
 %s
 </body>
 </html>`
 
-// generateHTML generates the complete HTML document
-func generateHTML(title, bigCSS, themeCSS, codeBlocksCSS, customCSS, bigJS, shikiJS, themeClass, slides string) string {
 	return fmt.Sprintf(
 		htmlTemplate,
 		title,
@@ -43,7 +48,7 @@ func generateHTML(title, bigCSS, themeCSS, codeBlocksCSS, customCSS, bigJS, shik
 		codeBlocksCSS,
 		customCSS,
 		bigJS,
-		shikiJS,
+		shikiScriptTag,
 		themeClass,
 		slides,
 	)

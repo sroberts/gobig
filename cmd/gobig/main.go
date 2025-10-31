@@ -14,12 +14,13 @@ import (
 const version = "1.0.0"
 
 var (
-	outputFile  = flag.String("o", "", "Output HTML file (default: stdout)")
-	theme       = flag.String("theme", "dark", "Theme: dark, light, or white")
-	aspectRatio = flag.String("aspect-ratio", "1.6", "Aspect ratio (e.g., 1.6, 2, false)")
-	title       = flag.String("title", "", "Presentation title (default: from first slide)")
-	showVersion = flag.Bool("version", false, "Show version information")
-	showHelp    = flag.Bool("help", false, "Show help message")
+	outputFile        = flag.String("o", "", "Output HTML file (default: stdout)")
+	theme             = flag.String("theme", "dark", "Theme: dark, light, or white")
+	aspectRatio       = flag.String("aspect-ratio", "1.6", "Aspect ratio (e.g., 1.6, 2, false)")
+	title             = flag.String("title", "", "Presentation title (default: from first slide)")
+	syntaxHighlighting = flag.Bool("syntax-highlighting", false, "Enable language-specific syntax highlighting with Shiki")
+	showVersion       = flag.Bool("version", false, "Show version information")
+	showHelp          = flag.Bool("help", false, "Show help message")
 )
 
 func main() {
@@ -84,6 +85,7 @@ func run(inputFile string) error {
 		AspectRatio:          *aspectRatio,
 		BasePath:             basePath,
 		PresentationMetadata: presentationMetadata,
+		SyntaxHighlighting:   *syntaxHighlighting,
 	}
 
 	gen := generator.NewGenerator(opts)
@@ -118,6 +120,7 @@ Options:
   -theme <name>          Theme: dark, light, or white (default: dark)
   -aspect-ratio <ratio>  Aspect ratio: number or "false" to disable (default: 1.6)
   -title <title>         Presentation title (default: from first slide)
+  -syntax-highlighting   Enable language-specific syntax highlighting with Shiki (default: false)
   -version               Show version information
   -help                  Show this help message
 
@@ -125,6 +128,7 @@ Examples:
   gobig -o index.html presentation.md
   gobig -theme light -o output.html slides.md
   gobig -aspect-ratio 2 -title "My Talk" -o slides.html talk.md
+  gobig -syntax-highlighting -o slides.html code-heavy-talk.md
 
 Markdown Syntax:
   Slides:      Separate with --- (horizontal rule)
