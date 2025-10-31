@@ -344,6 +344,7 @@ addEventListener("load", () => {
         iframe.style.width = "800px";
         iframe.style.height = "500px";
         iframe.style.transform = "scale(0.5)";
+        iframe.setAttribute("sandbox", "allow-same-origin");
         currentSlideEl.appendChild(iframe);
         const styleEl = document.querySelector("style");
         const styles = styleEl ? styleEl.textContent : "";
@@ -374,6 +375,7 @@ addEventListener("load", () => {
         iframe.style.width = "800px";
         iframe.style.height = "500px";
         iframe.style.transform = "scale(0.5)";
+        iframe.setAttribute("sandbox", "allow-same-origin");
         nextSlideEl.appendChild(iframe);
         const styleEl = document.querySelector("style");
         const styles = styleEl ? styleEl.textContent : "";
