@@ -1,6 +1,10 @@
+<!-- presentation
+time-to-next: 3
+-->
+
 # Advanced Features
 
-gobig demonstration
+gobig demonstration with auto-advance
 
 ---
 
@@ -130,13 +134,13 @@ You can use **bold**, *italic*, and ~~strikethrough~~.
 time-to-next: 5
 -->
 
-## Auto-Advance
+## Override Auto-Advance
 
-This slide automatically advances after 5 seconds.
+This slide overrides the presentation default and advances after 5 seconds instead of 3.
 
 Perfect for **PechaKucha** or **Ignite** style presentations!
 
-<!-- This is useful for timed presentations where you want automatic progression -->
+<!-- This demonstrates how per-slide time-to-next overrides the presentation default -->
 
 ---
 

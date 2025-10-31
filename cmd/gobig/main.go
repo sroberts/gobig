@@ -69,6 +69,7 @@ func run(inputFile string) error {
 	}
 
 	slides := p.GetSlides()
+	presentationMetadata := p.GetPresentationMetadata()
 
 	// Get base path for resolving relative image paths
 	basePath, err := filepath.Abs(filepath.Dir(inputFile))
@@ -78,10 +79,11 @@ func run(inputFile string) error {
 
 	// Generate HTML
 	opts := generator.Options{
-		Theme:       *theme,
-		Title:       *title,
-		AspectRatio: *aspectRatio,
-		BasePath:    basePath,
+		Theme:                *theme,
+		Title:                *title,
+		AspectRatio:          *aspectRatio,
+		BasePath:             basePath,
+		PresentationMetadata: presentationMetadata,
 	}
 
 	gen := generator.NewGenerator(opts)
