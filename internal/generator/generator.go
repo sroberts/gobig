@@ -41,9 +41,6 @@ func NewGenerator(opts Options) *Generator {
 		opts.Theme = "dark"
 	}
 
-	// Map gobig theme to Mermaid theme
-	mermaidTheme := getMermaidTheme(opts.Theme)
-
 	// Create goldmark markdown processor
 	md := goldmark.New(
 		goldmark.WithExtensions(
@@ -52,7 +49,7 @@ func NewGenerator(opts Options) *Generator {
 			extension.Strikethrough,
 			extension.TaskList,
 			&mermaid.Extender{
-				Theme: mermaidTheme, // Server-side rendering with theme support
+				// Server-side rendering - theme colors applied via CSS
 			},
 		),
 		goldmark.WithParserOptions(
@@ -345,18 +342,4 @@ func escapeHTML(s string) string {
 func escapeAttr(s string) string {
 	s = strings.ReplaceAll(s, "\"", "&quot;")
 	return s
-}
-
-// getMermaidTheme maps gobig theme to Mermaid theme
-func getMermaidTheme(theme string) string {
-	switch theme {
-	case "dark":
-		return "dark"
-	case "light":
-		return "default"
-	case "white":
-		return "neutral"
-	default:
-		return "dark"
-	}
 }
