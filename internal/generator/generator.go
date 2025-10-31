@@ -43,8 +43,8 @@ func NewGenerator(opts Options) *Generator {
 	// Create goldmark markdown processor
 	md := goldmark.New(
 		goldmark.WithExtensions(
-			extension.GFM,        // GitHub Flavored Markdown
-			extension.Table,      // Tables
+			extension.GFM,   // GitHub Flavored Markdown
+			extension.Table, // Tables
 			extension.Strikethrough,
 			extension.TaskList,
 		),

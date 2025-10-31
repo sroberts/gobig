@@ -2,11 +2,11 @@ package parser
 
 // SlideMetadata represents the YAML frontmatter for a slide
 type SlideMetadata struct {
-	Layout      string `yaml:"layout"`       // e.g., "50-50", "75-25-rows", "grid-3x2"
-	Class       string `yaml:"class"`        // Custom CSS classes
-	BodyStyle   string `yaml:"body-style"`   // Custom body styling for this slide
-	BodyClass   string `yaml:"body-class"`   // Custom body class for this slide
-	TimeToNext  int    `yaml:"time-to-next"` // Auto-advance time in seconds
+	Layout     string `yaml:"layout"`       // e.g., "50-50", "75-25-rows", "grid-3x2"
+	Class      string `yaml:"class"`        // Custom CSS classes
+	BodyStyle  string `yaml:"body-style"`   // Custom body styling for this slide
+	BodyClass  string `yaml:"body-class"`   // Custom body class for this slide
+	TimeToNext int    `yaml:"time-to-next"` // Auto-advance time in seconds
 }
 
 // PresentationMetadata represents presentation-level metadata
