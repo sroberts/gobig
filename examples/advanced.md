@@ -140,6 +140,22 @@ Perfect for **PechaKucha** or **Ignite** style presentations!
 
 ---
 
+## Mermaid Diagrams
+
+Create flowcharts and diagrams directly in markdown!
+
+```mermaid
+graph LR
+    A[Markdown] --> B[gobig]
+    B --> C[HTML]
+    C --> D[Present!]
+    style B fill:#2196F3,stroke:#1976D2,color:#fff
+```
+
+<!-- Mermaid.js is embedded, so diagrams work offline and are self-contained -->
+
+---
+
 # Thank You!
 
 **gobig** - Markdown to big.js presentations

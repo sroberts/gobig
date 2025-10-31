@@ -13,6 +13,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"go.abhg.dev/goldmark/mermaid"
 
 	"gobig/internal/assets"
 	parserPkg "gobig/internal/parser"
@@ -42,10 +43,11 @@ func NewGenerator(opts Options) *Generator {
 	// Create goldmark markdown processor
 	md := goldmark.New(
 		goldmark.WithExtensions(
-			extension.GFM,        // GitHub Flavored Markdown
-			extension.Table,      // Tables
+			extension.GFM,   // GitHub Flavored Markdown
+			extension.Table, // Tables
 			extension.Strikethrough,
 			extension.TaskList,
+			&mermaid.Extender{}, // Mermaid diagram support
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
@@ -79,6 +81,11 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		return "", fmt.Errorf("failed to get theme: %w", err)
 	}
 
+	mermaidJS, err := assets.GetMermaidJS()
+	if err != nil {
+		return "", fmt.Errorf("failed to get mermaid.js: %w", err)
+	}
+
 	// Generate slides HTML
 	slidesHTML := g.generateSlides(slides)
 
@@ -101,7 +108,9 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		themeCSS,
 		aspectRatioScript,
 		bigJS,
-		g.options.Theme,
+		mermaidJS,
+		g.options.Theme, // for mermaid theme
+		g.options.Theme, // for body class
 		slidesHTML,
 	)
 

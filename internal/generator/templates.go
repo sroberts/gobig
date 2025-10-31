@@ -17,9 +17,30 @@ const htmlTemplate = `<!DOCTYPE html>
   <style>
 %s
   </style>
+  <style>
+    /* Mermaid diagram styling */
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
   %s
   <script>
 %s
+  </script>
+  <script>
+%s
+  </script>
+  <script>
+    // Initialize Mermaid with theme
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: '%s' === 'dark' ? 'dark' : 'default',
+        securityLevel: 'loose'
+      });
+    }
   </script>
 </head>
 <body class="%s">
@@ -28,16 +49,18 @@ const htmlTemplate = `<!DOCTYPE html>
 </html>`
 
 // generateHTML generates the complete HTML document
-func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, themeClass, slides string) string {
+func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, mermaidJS, theme, themeClass, slides string) string {
 	return fmt.Sprintf(
 		htmlTemplate,
-		title,
-		bigCSS,
-		themeCSS,
-		customCSS,
-		bigJS,
-		themeClass,
-		slides,
+		title,     // %s - title
+		bigCSS,    // %s - big.css
+		themeCSS,  // %s - theme CSS
+		customCSS, // %s - aspect ratio script
+		bigJS,     // %s - big.js
+		mermaidJS, // %s - mermaid.js
+		theme,     // %s - theme for mermaid initialization
+		themeClass, // %s - body class
+		slides,    // %s - slides HTML
 	)
 }
 
