@@ -80,6 +80,16 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		return "", fmt.Errorf("failed to get theme: %w", err)
 	}
 
+	shikiJS, err := assets.GetShikiJS()
+	if err != nil {
+		return "", fmt.Errorf("failed to get shiki-init.js: %w", err)
+	}
+
+	codeBlocksCSS, err := assets.GetCodeBlocksCSS()
+	if err != nil {
+		return "", fmt.Errorf("failed to get code-blocks.css: %w", err)
+	}
+
 	// Generate slides HTML
 	slidesHTML := g.generateSlides(slides)
 
@@ -100,8 +110,10 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		title,
 		bigCSS,
 		themeCSS,
+		codeBlocksCSS,
 		aspectRatioScript,
 		bigJS,
+		shikiJS,
 		g.options.Theme,
 		slidesHTML,
 	)

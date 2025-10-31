@@ -17,8 +17,14 @@ const htmlTemplate = `<!DOCTYPE html>
   <style>
 %s
   </style>
+  <style>
+%s
+  </style>
   %s
   <script>
+%s
+  </script>
+  <script type="module">
 %s
   </script>
 </head>
@@ -28,14 +34,16 @@ const htmlTemplate = `<!DOCTYPE html>
 </html>`
 
 // generateHTML generates the complete HTML document
-func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, themeClass, slides string) string {
+func generateHTML(title, bigCSS, themeCSS, codeBlocksCSS, customCSS, bigJS, shikiJS, themeClass, slides string) string {
 	return fmt.Sprintf(
 		htmlTemplate,
 		title,
 		bigCSS,
 		themeCSS,
+		codeBlocksCSS,
 		customCSS,
 		bigJS,
+		shikiJS,
 		themeClass,
 		slides,
 	)

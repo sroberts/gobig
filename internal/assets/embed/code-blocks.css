@@ -1,0 +1,53 @@
+/* Code block styling */
+pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85em;
+  line-height: 1.5;
+  margin: 0.5em 0;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-family: inherit;
+}
+
+code {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+  background: rgba(128, 128, 128, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+/* Light theme adjustments */
+body.light pre {
+  background: #f6f8fa;
+  color: #24292f;
+}
+
+body.light code {
+  background: rgba(175, 184, 193, 0.2);
+}
+
+/* White theme adjustments */
+body.white pre {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #e1e4e8;
+}
+
+body.white code {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Shiki will override these styles when loaded */
+pre.shiki {
+  /* Shiki applies its own styles */
+}
