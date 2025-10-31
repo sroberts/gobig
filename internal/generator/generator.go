@@ -48,7 +48,9 @@ func NewGenerator(opts Options) *Generator {
 			extension.Table, // Tables
 			extension.Strikethrough,
 			extension.TaskList,
-			&mermaid.Extender{}, // Mermaid diagram support
+			&mermaid.Extender{
+				// Server-side rendering - converts to SVG at build time
+			},
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
@@ -82,11 +84,6 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		return "", fmt.Errorf("failed to get theme: %w", err)
 	}
 
-	mermaidJS, err := assets.GetMermaidJS()
-	if err != nil {
-		return "", fmt.Errorf("failed to get mermaid.js: %w", err)
-	}
-
 	// Generate slides HTML
 	slidesHTML := g.generateSlides(slides)
 
@@ -109,8 +106,6 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		themeCSS,
 		aspectRatioScript,
 		bigJS,
-		mermaidJS,
-		g.options.Theme, // for mermaid theme
 		g.options.Theme, // for body class
 		slidesHTML,
 	)
