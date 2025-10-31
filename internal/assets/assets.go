@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-//go:embed embed/big.js embed/big.css embed/themes/*.css
+//go:embed embed/big.js embed/big.css embed/themes/*.css embed/shiki-init.js embed/code-blocks.css
 var files embed.FS
 
 // GetBigJS returns the big.js JavaScript content
@@ -45,4 +45,22 @@ func ValidateTheme(theme string) bool {
 		"white": true,
 	}
 	return validThemes[theme]
+}
+
+// GetShikiJS returns the Shiki initialization JavaScript content
+func GetShikiJS() (string, error) {
+	content, err := files.ReadFile("embed/shiki-init.js")
+	if err != nil {
+		return "", fmt.Errorf("failed to read shiki-init.js: %w", err)
+	}
+	return string(content), nil
+}
+
+// GetCodeBlocksCSS returns the code blocks CSS content
+func GetCodeBlocksCSS() (string, error) {
+	content, err := files.ReadFile("embed/code-blocks.css")
+	if err != nil {
+		return "", fmt.Errorf("failed to read code-blocks.css: %w", err)
+	}
+	return string(content), nil
 }
