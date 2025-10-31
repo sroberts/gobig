@@ -13,6 +13,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"go.abhg.dev/goldmark/mermaid"
 
 	"gobig/internal/assets"
 	parserPkg "gobig/internal/parser"
@@ -47,6 +48,9 @@ func NewGenerator(opts Options) *Generator {
 			extension.Table, // Tables
 			extension.Strikethrough,
 			extension.TaskList,
+			&mermaid.Extender{
+				// Server-side rendering - theme colors applied via CSS
+			},
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
@@ -102,7 +106,7 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		themeCSS,
 		aspectRatioScript,
 		bigJS,
-		g.options.Theme,
+		g.options.Theme, // for body class
 		slidesHTML,
 	)
 

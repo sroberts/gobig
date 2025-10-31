@@ -12,6 +12,7 @@ A command-line tool to generate [big.js](https://github.com/tmcw/big) presentati
 - 📝 **Simple Markdown**: Write presentations in familiar markdown syntax
 - 🎨 **Three Themes**: Dark, light, and white themes included
 - 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
+- 📊 **Mermaid Diagrams**: Create flowcharts, sequence diagrams, and more
 - 🗣️ **Speaker Notes**: Hidden notes in HTML comments
 - 📦 **Single Binary**: No dependencies, just one executable
 - 🔒 **Self-Contained**: Generates single HTML file with embedded assets
@@ -406,6 +407,61 @@ function demo() {
 ![Images](image.jpg)
 ```
 
+### Mermaid Diagrams
+
+gobig supports [Mermaid.js](https://mermaid.js.org/) diagrams for creating flowcharts, sequence diagrams, class diagrams, and more directly in your markdown.
+
+Simply use a code block with the `mermaid` language tag:
+
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do Something]
+    B -->|No| D[Do Something Else]
+    C --> E[End]
+    D --> E
+```
+````
+
+**Supported diagram types:**
+- Flowcharts (`graph`, `flowchart`)
+- Sequence diagrams (`sequenceDiagram`)
+- Class diagrams (`classDiagram`)
+- State diagrams (`stateDiagram`)
+- Entity Relationship diagrams (`erDiagram`)
+- User Journey diagrams (`journey`)
+- Gantt charts (`gantt`)
+- Pie charts (`pie`)
+- Git graphs (`gitGraph`)
+
+**Theme integration:**
+Mermaid diagrams automatically adapt to your presentation theme:
+- `dark` theme → Mermaid dark theme
+- `light` and `white` themes → Mermaid default theme
+
+**Example slide with diagram:**
+
+````markdown
+## System Architecture
+
+```mermaid
+graph LR
+    Client[Client] --> API[API Gateway]
+    API --> Auth[Auth Service]
+    API --> DB[(Database)]
+    Auth --> DB
+```
+````
+
+**Tips:**
+- Keep diagrams simple for better readability on slides
+- Use consistent styling across diagrams
+- Test diagrams render correctly before presenting
+- Complex diagrams may need their own slide
+
+For full Mermaid syntax documentation, see [mermaid.js.org](https://mermaid.js.org/).
+
 ## Presentation Controls
 
 Once you've generated your HTML presentation, use these controls:
@@ -476,6 +532,7 @@ gobig/
 
 - [big.js](https://github.com/tmcw/big) by Tom MacWright - The presentation framework
 - [goldmark](https://github.com/yuin/goldmark) - Markdown parsing
+- [Mermaid.js](https://mermaid.js.org/) - Diagram and flowchart generation
 - Built with Go
 
 ## License

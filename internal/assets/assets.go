@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-//go:embed embed/big.js embed/big.css embed/themes/*.css
+//go:embed embed/big.js embed/big.css embed/themes/*.css embed/mermaid.min.js
 var files embed.FS
 
 // GetBigJS returns the big.js JavaScript content
@@ -22,6 +22,15 @@ func GetBigCSS() (string, error) {
 	content, err := files.ReadFile("embed/big.css")
 	if err != nil {
 		return "", fmt.Errorf("failed to read big.css: %w", err)
+	}
+	return string(content), nil
+}
+
+// GetMermaidJS returns the mermaid.min.js JavaScript content
+func GetMermaidJS() (string, error) {
+	content, err := files.ReadFile("embed/mermaid.min.js")
+	if err != nil {
+		return "", fmt.Errorf("failed to read mermaid.min.js: %w", err)
 	}
 	return string(content), nil
 }

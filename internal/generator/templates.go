@@ -17,6 +17,24 @@ const htmlTemplate = `<!DOCTYPE html>
   <style>
 %s
   </style>
+  <style>
+    /* Mermaid diagram styling - fill available space like images */
+    div.slide > .mermaid:only-child {
+      width: 100%%;
+      height: 100%%;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .mermaid svg {
+      max-width: 100%% !important;
+      max-height: 100%% !important;
+      width: auto !important;
+      height: auto !important;
+    }
+  </style>
   %s
   <script>
 %s
@@ -31,13 +49,13 @@ const htmlTemplate = `<!DOCTYPE html>
 func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, themeClass, slides string) string {
 	return fmt.Sprintf(
 		htmlTemplate,
-		title,
-		bigCSS,
-		themeCSS,
-		customCSS,
-		bigJS,
-		themeClass,
-		slides,
+		title,      // %s - title
+		bigCSS,     // %s - big.css
+		themeCSS,   // %s - theme CSS
+		customCSS,  // %s - aspect ratio script
+		bigJS,      // %s - big.js
+		themeClass, // %s - body class
+		slides,     // %s - slides HTML
 	)
 }
 
