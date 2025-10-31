@@ -1,0 +1,50 @@
+/* Custom theme example for gobig presentations
+ * This file demonstrates how to customize colors and fonts
+ * Use with: gobig -custom-css custom-theme.css -o output.html presentation.md
+ */
+
+/* Override background and text colors */
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  font-family: 'Georgia', serif;
+}
+
+/* Customize heading colors */
+h1, h2, h3 {
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Style emphasized text */
+em {
+  color: #00ffff;
+  font-style: italic;
+}
+
+/* Customize links */
+a {
+  color: #ffff00;
+  text-decoration: underline;
+}
+
+a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Style code blocks */
+code {
+  background: rgba(0, 0, 0, 0.3);
+  color: #00ff00;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Style blockquotes */
+blockquote {
+  border-left: 4px solid #ffd700;
+  padding-left: 1em;
+  margin-left: 0;
+  font-style: italic;
+  opacity: 0.9;
+}
