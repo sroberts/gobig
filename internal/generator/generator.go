@@ -131,16 +131,12 @@ func (g *Generator) generateSlide(slide *parserPkg.Slide) string {
 
 	// Add data attributes
 	// Determine time-to-next: slide-level overrides presentation-level
-	var timeToNext *int
-	if slide.Metadata.TimeToNext != nil {
-		// Slide-level override (could be zero to explicitly disable)
-		timeToNext = slide.Metadata.TimeToNext
-	} else if g.options.PresentationMetadata.TimeToNext != nil {
-		// Presentation-level default
+	timeToNext := slide.Metadata.TimeToNext
+	if timeToNext == 0 && g.options.PresentationMetadata.TimeToNext > 0 {
 		timeToNext = g.options.PresentationMetadata.TimeToNext
 	}
-	if timeToNext != nil && *timeToNext > 0 {
-		sb.WriteString(fmt.Sprintf(` data-time-to-next="%d"`, *timeToNext))
+	if timeToNext > 0 {
+		sb.WriteString(fmt.Sprintf(` data-time-to-next="%d"`, timeToNext))
 	}
 
 	if slide.Metadata.BodyStyle != "" {
