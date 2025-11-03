@@ -35,12 +35,19 @@ function colorMatches(actual, expected, tolerance = 10) {
 
 test.describe('Mermaid Diagram Rendering', () => {
   test.beforeEach(async ({ page }) => {
+    // Capture console logs and errors for debugging CI issues
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
+
     // Navigate to the mermaid test presentation
     await page.goto('http://localhost:8080/examples/mermaid-test.html');
     await page.waitForLoadState('networkidle');
 
-    // Wait for big.js to initialize and create .slide elements
-    await page.waitForSelector('.slide', { timeout: 10000 });
+    // Wait for big.js to create presentation-container (proves big.js ran)
+    await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+    // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
+    await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
   });
 
   test('should load the presentation', async ({ page }) => {
@@ -99,8 +106,11 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#3');
     await page.waitForLoadState('networkidle');
 
-    // Wait for big.js to initialize and create .slide elements
-    await page.waitForSelector('.slide', { timeout: 10000 });
+    // Wait for big.js to create presentation-container (proves big.js ran)
+    await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+    // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
+    await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(3);
@@ -123,8 +133,11 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#4');
     await page.waitForLoadState('networkidle');
 
-    // Wait for big.js to initialize and create .slide elements
-    await page.waitForSelector('.slide', { timeout: 10000 });
+    // Wait for big.js to create presentation-container (proves big.js ran)
+    await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+    // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
+    await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(4);
@@ -147,8 +160,11 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#5');
     await page.waitForLoadState('networkidle');
 
-    // Wait for big.js to initialize and create .slide elements
-    await page.waitForSelector('.slide', { timeout: 10000 });
+    // Wait for big.js to create presentation-container (proves big.js ran)
+    await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+    // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
+    await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(5);
@@ -173,8 +189,11 @@ test.describe('Mermaid Diagram Rendering', () => {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${slideNum}`);
       await page.waitForLoadState('networkidle');
 
-      // Wait for big.js to initialize and create .slide elements
-      await page.waitForSelector('.slide', { timeout: 10000 });
+      // Wait for big.js to create presentation-container (proves big.js ran)
+      await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+      // Then wait for slides to be ready
+      await page.waitForSelector('.slide', { timeout: 5000 });
 
       // Get the slide by index
       const slide = page.locator('.slide').nth(slideNum);
@@ -202,8 +221,11 @@ test.describe('Mermaid Diagram Rendering', () => {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${slideNum}`);
       await page.waitForLoadState('networkidle');
 
-      // Wait for big.js to initialize and create .slide elements
-      await page.waitForSelector('.slide', { timeout: 10000 });
+      // Wait for big.js to create presentation-container (proves big.js ran)
+      await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+      // Then wait for slides to be ready
+      await page.waitForSelector('.slide', { timeout: 5000 });
 
       // Get the slide by index
       const slide = page.locator('.slide').nth(slideNum);
@@ -233,8 +255,11 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#1');
     await page.waitForLoadState('networkidle');
 
-    // Wait for big.js to initialize and create .slide elements
-    await page.waitForSelector('.slide', { timeout: 10000 });
+    // Wait for big.js to create presentation-container (proves big.js ran)
+    await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+    // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
+    await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
 
     // Check that mermaid container has proper parent with dark class
     const slide = page.locator('.slide').nth(1);
@@ -247,8 +272,11 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/advanced.html#10');
     await page.waitForLoadState('networkidle');
 
-    // Wait for big.js to initialize and create .slide elements
-    await page.waitForSelector('.slide', { timeout: 10000 });
+    // Wait for big.js to create presentation-container (proves big.js ran)
+    await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+    // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
+    await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
 
     // Get the slide by index (slide 10)
     const slide = page.locator('.slide').nth(10);
@@ -280,8 +308,11 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#1');
     await page.waitForLoadState('networkidle');
 
-    // Wait for big.js to initialize and create .slide elements
-    await page.waitForSelector('.slide', { timeout: 10000 });
+    // Wait for big.js to create presentation-container (proves big.js ran)
+    await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+    // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
+    await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(1);
@@ -321,8 +352,11 @@ test.describe('Mermaid Diagram Types Coverage', () => {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${diagram.slide}`);
       await page.waitForLoadState('networkidle');
 
-      // Wait for big.js to initialize and create .slide elements
-      await page.waitForSelector('.slide', { timeout: 10000 });
+      // Wait for big.js to create presentation-container (proves big.js ran)
+      await page.waitForSelector('.presentation-container', { timeout: 30000 });
+
+      // Then wait for slides to be ready
+      await page.waitForSelector('.slide', { timeout: 5000 });
 
       // Get the slide by index
       const slide = page.locator('.slide').nth(diagram.slide);
