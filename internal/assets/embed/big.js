@@ -274,10 +274,32 @@ addEventListener("load", () => {
 </html>
     `);
     presenterWindow.document.close();
-    
+
+    // Add keyboard navigation to presenter view
+    presenterWindow.document.addEventListener("keydown", e => {
+      switch (e.key) {
+        case "ArrowLeft":
+        case "ArrowUp":
+        case "PageUp":
+          return reverse();
+        case "ArrowRight":
+        case "ArrowDown":
+        case "PageDown":
+        case " ":
+          return forward();
+      }
+    });
+
+    // Add click navigation to presenter view
+    presenterWindow.document.addEventListener("click", e => {
+      // Don't navigate if clicking on links or interactive elements
+      if (e.target.tagName === "A" || e.target.tagName === "IFRAME") return;
+      forward();
+    });
+
     // Clear any existing intervals
     if (presenterTimerInterval) clearInterval(presenterTimerInterval);
-    
+
     // Combined interval for timer updates and window check
     presenterTimerInterval = setInterval(() => {
       if (!presenterWindow || presenterWindow.closed) {
@@ -289,7 +311,7 @@ addEventListener("load", () => {
         updatePresenterTimers();
       }
     }, 1000);
-    
+
     // Update presenter view with current slide
     setTimeout(() => updatePresenterView(), 100);
   }
