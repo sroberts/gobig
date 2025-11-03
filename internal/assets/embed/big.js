@@ -362,10 +362,23 @@ addEventListener("load", () => {
       if (slideDivs[currentIdx]) {
         const clone = slideDivs[currentIdx].cloneNode(true);
         const iframe = doc.createElement("iframe");
-        iframe.style.width = "800px";
-        iframe.style.height = "500px";
-        iframe.style.transform = "scale(0.5)";
+
+        // Get actual viewport dimensions
+        const viewportWidth = document.documentElement.clientWidth;
+        const viewportHeight = document.documentElement.clientHeight;
+
+        // Calculate scale to fit preview (preview container is roughly 45% of presenter window width)
+        const previewWidth = 450; // Target preview width
+        const previewHeight = 300; // Target preview height
+        const scale = Math.min(previewWidth / viewportWidth, previewHeight / viewportHeight);
+
+        iframe.style.width = `${viewportWidth}px`;
+        iframe.style.height = `${viewportHeight}px`;
+        iframe.style.transform = `scale(${scale})`;
+        iframe.style.transformOrigin = "top left";
         iframe.setAttribute("sandbox", "allow-same-origin");
+        currentSlideEl.style.width = `${viewportWidth * scale}px`;
+        currentSlideEl.style.height = `${viewportHeight * scale}px`;
         currentSlideEl.appendChild(iframe);
         const styleEl = document.querySelector("style");
         const styles = styleEl ? styleEl.textContent : "";
@@ -393,10 +406,23 @@ addEventListener("load", () => {
       if (nextIdx < big.length && slideDivs[nextIdx]) {
         const clone = slideDivs[nextIdx].cloneNode(true);
         const iframe = doc.createElement("iframe");
-        iframe.style.width = "800px";
-        iframe.style.height = "500px";
-        iframe.style.transform = "scale(0.5)";
+
+        // Get actual viewport dimensions
+        const viewportWidth = document.documentElement.clientWidth;
+        const viewportHeight = document.documentElement.clientHeight;
+
+        // Calculate scale to fit preview
+        const previewWidth = 450;
+        const previewHeight = 300;
+        const scale = Math.min(previewWidth / viewportWidth, previewHeight / viewportHeight);
+
+        iframe.style.width = `${viewportWidth}px`;
+        iframe.style.height = `${viewportHeight}px`;
+        iframe.style.transform = `scale(${scale})`;
+        iframe.style.transformOrigin = "top left";
         iframe.setAttribute("sandbox", "allow-same-origin");
+        nextSlideEl.style.width = `${viewportWidth * scale}px`;
+        nextSlideEl.style.height = `${viewportHeight * scale}px`;
         nextSlideEl.appendChild(iframe);
         const styleEl = document.querySelector("style");
         const styles = styleEl ? styleEl.textContent : "";
