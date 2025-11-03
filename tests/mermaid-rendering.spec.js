@@ -38,6 +38,9 @@ test.describe('Mermaid Diagram Rendering', () => {
     // Navigate to the mermaid test presentation
     await page.goto('http://localhost:8080/examples/mermaid-test.html');
     await page.waitForLoadState('networkidle');
+
+    // Wait for big.js to initialize and create .slide elements
+    await page.waitForSelector('.slide', { timeout: 10000 });
   });
 
   test('should load the presentation', async ({ page }) => {
@@ -94,7 +97,10 @@ test.describe('Mermaid Diagram Rendering', () => {
   test('class diagram renders with correct colors', async ({ page }) => {
     // Navigate to class diagram slide (slide 3)
     await page.goto('http://localhost:8080/examples/mermaid-test.html#3');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
+
+    // Wait for big.js to initialize and create .slide elements
+    await page.waitForSelector('.slide', { timeout: 10000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(3);
@@ -115,7 +121,10 @@ test.describe('Mermaid Diagram Rendering', () => {
   test('state diagram renders with correct colors', async ({ page }) => {
     // Navigate to state diagram slide (slide 4)
     await page.goto('http://localhost:8080/examples/mermaid-test.html#4');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
+
+    // Wait for big.js to initialize and create .slide elements
+    await page.waitForSelector('.slide', { timeout: 10000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(4);
@@ -136,7 +145,10 @@ test.describe('Mermaid Diagram Rendering', () => {
   test('ER diagram renders with correct colors', async ({ page }) => {
     // Navigate to ER diagram slide (slide 5)
     await page.goto('http://localhost:8080/examples/mermaid-test.html#5');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
+
+    // Wait for big.js to initialize and create .slide elements
+    await page.waitForSelector('.slide', { timeout: 10000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(5);
@@ -159,7 +171,10 @@ test.describe('Mermaid Diagram Rendering', () => {
 
     for (const slideNum of slides) {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${slideNum}`);
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
+
+      // Wait for big.js to initialize and create .slide elements
+      await page.waitForSelector('.slide', { timeout: 10000 });
 
       // Get the slide by index
       const slide = page.locator('.slide').nth(slideNum);
@@ -185,7 +200,10 @@ test.describe('Mermaid Diagram Rendering', () => {
 
     for (const slideNum of slides) {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${slideNum}`);
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
+
+      // Wait for big.js to initialize and create .slide elements
+      await page.waitForSelector('.slide', { timeout: 10000 });
 
       // Get the slide by index
       const slide = page.locator('.slide').nth(slideNum);
@@ -213,7 +231,10 @@ test.describe('Mermaid Diagram Rendering', () => {
 
     // Navigate to a diagram slide
     await page.goto('http://localhost:8080/examples/mermaid-test.html#1');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
+
+    // Wait for big.js to initialize and create .slide elements
+    await page.waitForSelector('.slide', { timeout: 10000 });
 
     // Check that mermaid container has proper parent with dark class
     const slide = page.locator('.slide').nth(1);
@@ -224,7 +245,10 @@ test.describe('Mermaid Diagram Rendering', () => {
   test('advanced example Mermaid diagram renders correctly', async ({ page }) => {
     // Test the actual advanced.html example that was originally broken
     await page.goto('http://localhost:8080/examples/advanced.html#10');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
+
+    // Wait for big.js to initialize and create .slide elements
+    await page.waitForSelector('.slide', { timeout: 10000 });
 
     // Get the slide by index (slide 10)
     const slide = page.locator('.slide').nth(10);
@@ -254,7 +278,10 @@ test.describe('Mermaid Diagram Rendering', () => {
   test('text has sufficient contrast on dark backgrounds', async ({ page }) => {
     // Navigate to flowchart
     await page.goto('http://localhost:8080/examples/mermaid-test.html#1');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle');
+
+    // Wait for big.js to initialize and create .slide elements
+    await page.waitForSelector('.slide', { timeout: 10000 });
 
     // Get the slide by index
     const slide = page.locator('.slide').nth(1);
@@ -292,7 +319,10 @@ test.describe('Mermaid Diagram Types Coverage', () => {
   for (const diagram of diagramTypes) {
     test(`${diagram.name} renders without errors`, async ({ page }) => {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${diagram.slide}`);
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle');
+
+      // Wait for big.js to initialize and create .slide elements
+      await page.waitForSelector('.slide', { timeout: 10000 });
 
       // Get the slide by index
       const slide = page.locator('.slide').nth(diagram.slide);
