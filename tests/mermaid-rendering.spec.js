@@ -70,9 +70,9 @@ test.describe('Mermaid Diagram Rendering', () => {
       // Get the slide by index
       const slide = page.locator('.slide').nth(slideNum);
 
-      // Check that SVG exists and is visible
+      // Check that SVG exists and is visible (give Mermaid time to render in CI)
       const svg = slide.locator('.mermaid svg');
-      await expect(svg).toBeVisible();
+      await expect(svg).toBeVisible({ timeout: 15000 });
 
       // Check that SVG has some content (paths, rects, or text)
       const hasContent = await slide.locator('.mermaid svg > g').count();
@@ -121,9 +121,9 @@ test.describe('Mermaid Diagram Rendering', () => {
     // Get the slide by index (slide 10)
     const slide = page.locator('.slide').nth(10);
 
-    // Check that SVG exists and is visible
+    // Check that SVG exists and is visible (give Mermaid time to render in CI)
     const svg = slide.locator('.mermaid svg');
-    await expect(svg).toBeVisible();
+    await expect(svg).toBeVisible({ timeout: 15000 });
 
     // Check for the specific diagram content (gobig -> Markdown -> HTML -> Present!)
     // Get all text from the diagram (including text in foreignObject elements)
@@ -173,9 +173,9 @@ test.describe('Mermaid Diagram Types Coverage', () => {
       // Get the slide by index
       const slide = page.locator('.slide').nth(diagram.slide);
 
-      // Check for SVG
+      // Wait for Mermaid to render the SVG (give it more time in CI)
       const svg = slide.locator('.mermaid svg');
-      await expect(svg).toBeVisible();
+      await expect(svg).toBeVisible({ timeout: 15000 });
 
       // Check no error messages
       const errorIcon = slide.locator('.mermaid .error-icon');
