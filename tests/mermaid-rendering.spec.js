@@ -18,6 +18,9 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('.presentation-container', { timeout: 10000 });
 
+    // Wait a bit for page to fully render
+    await page.waitForTimeout(2000);
+
     // Check that mermaid containers exist (proves Mermaid rendered)
     const mermaidContainers = page.locator('.mermaid');
     const count = await mermaidContainers.count();
@@ -30,6 +33,9 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/advanced.html');
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('.presentation-container', { timeout: 10000 });
+
+    // Wait a bit for page to fully render
+    await page.waitForTimeout(2000);
 
     // Check that mermaid content exists
     const mermaidContainers = page.locator('.mermaid');
