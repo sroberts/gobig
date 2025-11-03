@@ -203,6 +203,7 @@ addEventListener("load", () => {
       overflow: hidden;
       position: relative;
       background: #fff;
+      min-height: 300px;
     }
     .slide-preview iframe {
       border: none;
@@ -377,8 +378,6 @@ addEventListener("load", () => {
         iframe.style.transform = `scale(${scale})`;
         iframe.style.transformOrigin = "top left";
         iframe.setAttribute("sandbox", "allow-same-origin");
-        currentSlideEl.style.width = `${viewportWidth * scale}px`;
-        currentSlideEl.style.height = `${viewportHeight * scale}px`;
         currentSlideEl.appendChild(iframe);
         const styleEl = document.querySelector("style");
         const styles = styleEl ? styleEl.textContent : "";
@@ -421,8 +420,6 @@ addEventListener("load", () => {
         iframe.style.transform = `scale(${scale})`;
         iframe.style.transformOrigin = "top left";
         iframe.setAttribute("sandbox", "allow-same-origin");
-        nextSlideEl.style.width = `${viewportWidth * scale}px`;
-        nextSlideEl.style.height = `${viewportHeight * scale}px`;
         nextSlideEl.appendChild(iframe);
         const styleEl = document.querySelector("style");
         const styles = styleEl ? styleEl.textContent : "";
