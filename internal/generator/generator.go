@@ -50,7 +50,7 @@ func NewGenerator(opts Options) *Generator {
 			extension.TaskList,
 			&mermaid.Extender{
 				RenderMode: mermaid.RenderModeServer, // Server-side rendering to SVG
-				Theme:      mapTheme(opts.Theme),      // Match presentation theme
+				Theme:      mapTheme(opts.Theme),     // Match presentation theme
 			},
 		),
 		goldmark.WithParserOptions(
@@ -84,7 +84,6 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get theme: %w", err)
 	}
-
 
 	// Generate slides HTML
 	slidesHTML := g.generateSlides(slides)
