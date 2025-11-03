@@ -277,7 +277,6 @@ addEventListener("load", () => {
     
     // Clear any existing intervals
     if (presenterTimerInterval) clearInterval(presenterTimerInterval);
-    if (presenterCheckInterval) clearInterval(presenterCheckInterval);
     
     // Combined interval for timer updates and window check
     presenterTimerInterval = setInterval(() => {
