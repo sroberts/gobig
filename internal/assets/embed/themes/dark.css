@@ -16,10 +16,6 @@ a:hover {
   background: #4e5b6f;
 }
 
-/* Mermaid diagram styling for dark theme */
-.mermaid svg {
-  background-color: transparent !important;
-}
 
 .mermaid .node rect,
 .mermaid .node circle,

@@ -49,7 +49,8 @@ func NewGenerator(opts Options) *Generator {
 			extension.Strikethrough,
 			extension.TaskList,
 			&mermaid.Extender{
-				// Server-side rendering - theme colors applied via CSS
+				RenderMode: mermaid.RenderModeServer, // Server-side rendering to SVG
+				Theme:      mapTheme(opts.Theme),      // Match presentation theme
 			},
 		),
 		goldmark.WithParserOptions(
@@ -84,6 +85,7 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		return "", fmt.Errorf("failed to get theme: %w", err)
 	}
 
+
 	// Generate slides HTML
 	slidesHTML := g.generateSlides(slides)
 
@@ -106,7 +108,7 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		themeCSS,
 		aspectRatioScript,
 		bigJS,
-		g.options.Theme, // for body class
+		g.options.Theme,
 		slidesHTML,
 	)
 
@@ -203,6 +205,9 @@ func (g *Generator) markdownToHTML(markdown string) string {
 
 	// Process images for base64 encoding (for single-file output)
 	html = g.processImages(html)
+
+	// Fix Mermaid SVG inline styles that constrain size
+	html = fixMermaidSVGStyles(html)
 
 	return strings.TrimSpace(html)
 }
@@ -342,4 +347,30 @@ func escapeHTML(s string) string {
 func escapeAttr(s string) string {
 	s = strings.ReplaceAll(s, "\"", "&quot;")
 	return s
+}
+
+// mapTheme maps gobig theme names to mermaid theme names
+func mapTheme(theme string) string {
+	switch theme {
+	case "dark":
+		return "dark"
+	case "light":
+		return "default"
+	case "white":
+		return "neutral"
+	default:
+		return "dark"
+	}
+}
+
+// fixMermaidSVGStyles removes inline style constraints from Mermaid SVGs
+func fixMermaidSVGStyles(html string) string {
+	// Remove max-width constraint from SVG inline styles
+	svgStyleRegex := regexp.MustCompile(`(<svg[^>]*) style="max-width: [^;]+;([^"]*)"`)
+	html = svgStyleRegex.ReplaceAllString(html, `$1 style="$2"`)
+	
+	// Clean up empty style attributes
+	html = strings.ReplaceAll(html, ` style=""`, ``)
+	
+	return html
 }

@@ -9,10 +9,6 @@ a {
   text-decoration-skip: ink;
 }
 
-/* Mermaid diagram styling for white theme */
-.mermaid svg {
-  background-color: transparent !important;
-}
 
 .mermaid .node rect,
 .mermaid .node circle,

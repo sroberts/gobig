@@ -18,19 +18,17 @@ const htmlTemplate = `<!DOCTYPE html>
 %s
   </style>
   <style>
-    /* Mermaid diagram styling - fill available space like images */
-    div.slide > .mermaid:only-child {
-      width: 100%%;
-      height: 100%%;
-    }
+    /* Mermaid SVG diagram styling - responsive sizing for presentations */
     .mermaid {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .mermaid svg {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
       max-width: 100%% !important;
       max-height: 100%% !important;
+    }
+    .mermaid svg {
+      max-width: 90%% !important;
+      max-height: 90%% !important;
       width: auto !important;
       height: auto !important;
     }
@@ -46,16 +44,16 @@ const htmlTemplate = `<!DOCTYPE html>
 </html>`
 
 // generateHTML generates the complete HTML document
-func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, themeClass, slides string) string {
+func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, theme, slides string) string {
 	return fmt.Sprintf(
 		htmlTemplate,
-		title,      // %s - title
-		bigCSS,     // %s - big.css
-		themeCSS,   // %s - theme CSS
-		customCSS,  // %s - aspect ratio script
-		bigJS,      // %s - big.js
-		themeClass, // %s - body class
-		slides,     // %s - slides HTML
+		title,     // %s - title
+		bigCSS,    // %s - big.css
+		themeCSS,  // %s - theme CSS
+		customCSS, // %s - aspect ratio script
+		bigJS,     // %s - big.js
+		theme,     // %s - body class (theme)
+		slides,    // %s - slides HTML
 	)
 }
 
