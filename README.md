@@ -12,7 +12,9 @@ A command-line tool to generate [big.js](https://github.com/tmcw/big) presentati
 - 📝 **Simple Markdown**: Write presentations in familiar markdown syntax
 - 🎨 **Three Themes**: Dark, light, and white themes included
 - 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
+- 📊 **Mermaid Diagrams**: Create flowcharts, sequence diagrams, and more
 - 🗣️ **Speaker Notes**: Hidden notes in HTML comments
+- 🎤 **Presenter View**: Dedicated window with slide previews, notes, and timers
 - 📦 **Single Binary**: No dependencies, just one executable
 - 🔒 **Self-Contained**: Generates single HTML file with embedded assets
 - 🖼️ **Image Support**: Auto-converts local images to base64 data URIs
@@ -406,6 +408,61 @@ function demo() {
 ![Images](image.jpg)
 ```
 
+### Mermaid Diagrams
+
+gobig supports [Mermaid.js](https://mermaid.js.org/) diagrams for creating flowcharts, sequence diagrams, class diagrams, and more directly in your markdown.
+
+Simply use a code block with the `mermaid` language tag:
+
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do Something]
+    B -->|No| D[Do Something Else]
+    C --> E[End]
+    D --> E
+```
+````
+
+**Supported diagram types:**
+- Flowcharts (`graph`, `flowchart`)
+- Sequence diagrams (`sequenceDiagram`)
+- Class diagrams (`classDiagram`)
+- State diagrams (`stateDiagram`)
+- Entity Relationship diagrams (`erDiagram`)
+- User Journey diagrams (`journey`)
+- Gantt charts (`gantt`)
+- Pie charts (`pie`)
+- Git graphs (`gitGraph`)
+
+**Theme integration:**
+Mermaid diagrams automatically adapt to your presentation theme:
+- `dark` theme → Mermaid dark theme
+- `light` and `white` themes → Mermaid default theme
+
+**Example slide with diagram:**
+
+````markdown
+## System Architecture
+
+```mermaid
+graph LR
+    Client[Client] --> API[API Gateway]
+    API --> Auth[Auth Service]
+    API --> DB[(Database)]
+    Auth --> DB
+```
+````
+
+**Tips:**
+- Keep diagrams simple for better readability on slides
+- Use consistent styling across diagrams
+- Test diagrams render correctly before presenting
+- Complex diagrams may need their own slide
+
+For full Mermaid syntax documentation, see [mermaid.js.org](https://mermaid.js.org/).
+
 ## Presentation Controls
 
 Once you've generated your HTML presentation, use these controls:
@@ -422,17 +479,35 @@ Once you've generated your HTML presentation, use these controls:
 - **t**: Talk mode (default, single slide)
 - **p**: Print mode (2 slides per page with notes)
 - **j**: Jump mode (grid overview)
+- **r**: Presenter view (speaker notes, timers, and slide previews)
 
 ### Direct Navigation
 
 - Navigate to specific slides using hash: `presentation.html#5`
 - In jump mode, use arrow keys and Enter
 
-### Speaker Notes
+### Presenter View
+
+Press **r** to open the presenter view in a separate window. The presenter view includes:
+
+- **Current slide preview**: See what the audience sees
+- **Next slide preview**: Know what's coming up
+- **Speaker notes**: View notes for the current slide
+- **Elapsed time**: Track how long you've been presenting
+- **Current time**: Keep track of the actual time
+- **Slide counter**: Know your position in the presentation
+
+The presenter view automatically synchronizes with the main presentation window. Navigate slides in either window and both will stay in sync.
+
+**Tip**: Use a second monitor or screen to display the presenter view while projecting the main presentation to your audience.
+
+### Speaker Notes (Console)
+
+Alternative method for viewing speaker notes:
 
 - Open browser developer console (F12 or Cmd+Option+I)
 - Notes appear in console for each slide
-- Use a second screen to view notes while presenting
+- Simpler option if you don't need the full presenter view
 
 ## Examples
 
@@ -476,6 +551,7 @@ gobig/
 
 - [big.js](https://github.com/tmcw/big) by Tom MacWright - The presentation framework
 - [goldmark](https://github.com/yuin/goldmark) - Markdown parsing
+- [Mermaid.js](https://mermaid.js.org/) - Diagram and flowchart generation
 - Built with Go
 
 ## License

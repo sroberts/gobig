@@ -13,6 +13,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"go.abhg.dev/goldmark/mermaid"
 
 	"gobig/internal/assets"
 	parserPkg "gobig/internal/parser"
@@ -47,6 +48,10 @@ func NewGenerator(opts Options) *Generator {
 			extension.Table, // Tables
 			extension.Strikethrough,
 			extension.TaskList,
+			&mermaid.Extender{
+				RenderMode: mermaid.RenderModeServer, // Server-side rendering to SVG
+				Theme:      mapTheme(opts.Theme),     // Match presentation theme
+			},
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
@@ -207,6 +212,9 @@ func (g *Generator) markdownToHTML(markdown string) string {
 	// Process images for base64 encoding (for single-file output)
 	html = g.processImages(html)
 
+	// Fix Mermaid SVG inline styles that constrain size
+	html = fixMermaidSVGStyles(html)
+
 	return strings.TrimSpace(html)
 }
 
@@ -345,4 +353,58 @@ func escapeHTML(s string) string {
 func escapeAttr(s string) string {
 	s = strings.ReplaceAll(s, "\"", "&quot;")
 	return s
+}
+
+// mapTheme maps gobig theme names to mermaid theme names
+func mapTheme(theme string) string {
+	switch theme {
+	case "dark":
+		return "dark"
+	case "light":
+		return "default"
+	case "white":
+		return "neutral"
+	default:
+		return "dark"
+	}
+}
+
+// fixMermaidSVGStyles removes inline style constraints from Mermaid SVGs and adds dark theme fill attributes
+func fixMermaidSVGStyles(html string) string {
+	// Remove background-color from SVG inline styles (causes white box on dark backgrounds)
+	bgColorRegex := regexp.MustCompile(`(<svg[^>]*style="[^"]*)\s*background-color:\s*white;([^"]*"[^>]*>)`)
+	html = bgColorRegex.ReplaceAllString(html, `$1$2`)
+
+	// Remove max-width constraint from SVG inline styles
+	svgStyleRegex := regexp.MustCompile(`(<svg[^>]*) style="max-width: [^;]+;([^"]*)"`)
+	html = svgStyleRegex.ReplaceAllString(html, `$1 style="$2"`)
+
+	// Remove hardcoded light-colored fills from SVG elements (sequence diagrams)
+	// These override the dark theme styles and cause white/light boxes
+	lightFillRegex := regexp.MustCompile(`\s+fill="#(?:eaeaea|ffffff|fff|eeeeee|e0e0e0|f0f0f0)"`)
+	html = lightFillRegex.ReplaceAllString(html, ``)
+
+	// Add dark fill attributes to rect and polygon elements that don't have fill attributes
+	// This ensures flowchart nodes render with dark backgrounds instead of browser default white
+	rectNoFillRegex := regexp.MustCompile(`(<rect\s+[^>]*class="[^"]*(?:basic|label-container)[^"]*"[^>]*)(/)?>`)
+	html = rectNoFillRegex.ReplaceAllStringFunc(html, func(match string) string {
+		if !strings.Contains(match, "fill=") {
+			return strings.Replace(match, "/>", ` fill="#1f2020"/>`, 1)
+		}
+		return match
+	})
+
+	polygonNoFillRegex := regexp.MustCompile(`(<polygon\s+[^>]*class="[^"]*label-container[^"]*"[^>]*)(/)?>`)
+	html = polygonNoFillRegex.ReplaceAllStringFunc(html, func(match string) string {
+		if !strings.Contains(match, "fill=") {
+			return strings.Replace(match, "/>", ` fill="#1f2020"/>`, 1)
+		}
+		return match
+	})
+
+	// Clean up empty style attributes and trailing semicolons
+	html = strings.ReplaceAll(html, ` style=" "`, ``)
+	html = strings.ReplaceAll(html, ` style=""`, ``)
+
+	return html
 }
