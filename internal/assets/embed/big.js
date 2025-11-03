@@ -380,8 +380,8 @@ addEventListener("load", () => {
         currentSlideEl.style.width = `${viewportWidth * scale}px`;
         currentSlideEl.style.height = `${viewportHeight * scale}px`;
         currentSlideEl.appendChild(iframe);
-        const styleEl = document.querySelector("style");
-        const styles = styleEl ? styleEl.textContent : "";
+        const styleEls = document.querySelectorAll("style");
+        const styles = Array.from(styleEls).map(el => el.textContent).join("\n");
         iframe.contentDocument.write(`
           <html>
           <head>
