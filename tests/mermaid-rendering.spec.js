@@ -17,9 +17,9 @@ function colorMatches(actual, expected, tolerance = 10) {
     // Convert hex to rgb
     const hex = color.replace('#', '');
     return [
-      parseInt(hex.substr(0, 2), 16),
-      parseInt(hex.substr(2, 2), 16),
-      parseInt(hex.substr(4, 2), 16)
+      parseInt(hex.substring(0, 2), 16),
+      parseInt(hex.substring(2, 4), 16),
+      parseInt(hex.substring(4, 6), 16)
     ];
   };
 
