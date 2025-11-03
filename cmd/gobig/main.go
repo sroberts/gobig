@@ -179,7 +179,7 @@ func runServer(inputFile string) error {
 	if err != nil {
 		return fmt.Errorf("failed to stat file: %w", err)
 	}
-	
+
 	mu.Lock()
 	lastMod = fileInfo.ModTime()
 	mu.Unlock()
@@ -207,7 +207,7 @@ func runServer(inputFile string) error {
 					mu.Lock()
 					lastMod = fileInfo.ModTime()
 					mu.Unlock()
-					
+
 					log.Printf("File changed, regenerating...")
 					if err := generateHTML(); err != nil {
 						log.Printf("Error regenerating: %v", err)
