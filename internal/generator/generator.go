@@ -363,14 +363,42 @@ func mapTheme(theme string) string {
 	}
 }
 
-// fixMermaidSVGStyles removes inline style constraints from Mermaid SVGs
+// fixMermaidSVGStyles removes inline style constraints from Mermaid SVGs and adds dark theme fill attributes
 func fixMermaidSVGStyles(html string) string {
+	// Remove background-color from SVG inline styles (causes white box on dark backgrounds)
+	bgColorRegex := regexp.MustCompile(`(<svg[^>]*style="[^"]*)\s*background-color:\s*white;([^"]*"[^>]*>)`)
+	html = bgColorRegex.ReplaceAllString(html, `$1$2`)
+
 	// Remove max-width constraint from SVG inline styles
 	svgStyleRegex := regexp.MustCompile(`(<svg[^>]*) style="max-width: [^;]+;([^"]*)"`)
 	html = svgStyleRegex.ReplaceAllString(html, `$1 style="$2"`)
-	
-	// Clean up empty style attributes
+
+	// Remove hardcoded light-colored fills from SVG elements (sequence diagrams)
+	// These override the dark theme styles and cause white/light boxes
+	lightFillRegex := regexp.MustCompile(`\s+fill="#(?:eaeaea|ffffff|fff|eeeeee|e0e0e0|f0f0f0)"`)
+	html = lightFillRegex.ReplaceAllString(html, ``)
+
+	// Add dark fill attributes to rect and polygon elements that don't have fill attributes
+	// This ensures flowchart nodes render with dark backgrounds instead of browser default white
+	rectNoFillRegex := regexp.MustCompile(`(<rect\s+[^>]*class="[^"]*(?:basic|label-container)[^"]*"[^>]*)(/)?>`)
+	html = rectNoFillRegex.ReplaceAllStringFunc(html, func(match string) string {
+		if !strings.Contains(match, "fill=") {
+			return strings.Replace(match, "/>", ` fill="#1f2020"/>`, 1)
+		}
+		return match
+	})
+
+	polygonNoFillRegex := regexp.MustCompile(`(<polygon\s+[^>]*class="[^"]*label-container[^"]*"[^>]*)(/)?>`)
+	html = polygonNoFillRegex.ReplaceAllStringFunc(html, func(match string) string {
+		if !strings.Contains(match, "fill=") {
+			return strings.Replace(match, "/>", ` fill="#1f2020"/>`, 1)
+		}
+		return match
+	})
+
+	// Clean up empty style attributes and trailing semicolons
+	html = strings.ReplaceAll(html, ` style=" "`, ``)
 	html = strings.ReplaceAll(html, ` style=""`, ``)
-	
+
 	return html
 }

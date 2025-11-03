@@ -29,8 +29,33 @@ const htmlTemplate = `<!DOCTYPE html>
     .mermaid svg {
       max-width: 90%% !important;
       max-height: 90%% !important;
-      width: auto !important;
-      height: auto !important;
+      width: 100%% !important;
+      height: 100%% !important;
+    }
+  </style>
+  <style>
+    /* Force dark theme colors for Mermaid diagrams with proper contrast */
+    .dark .mermaid rect,
+    .light .mermaid rect:not([fill]),
+    .white .mermaid rect:not([fill]) {
+      fill: #1f2020 !important;
+      stroke: #ccc !important;
+    }
+    .dark .mermaid polygon {
+      fill: #1f2020 !important;
+      stroke: #ccc !important;
+    }
+    /* Ensure text is light colored on dark backgrounds */
+    .dark .mermaid text,
+    .dark .mermaid tspan,
+    .dark .mermaid .nodeLabel,
+    .dark .mermaid .edgeLabel {
+      fill: #f0f0f0 !important;
+      color: #f0f0f0 !important;
+    }
+    /* Allow diagrams to scale properly without text cutoff */
+    .dark .mermaid foreignObject {
+      overflow: visible !important;
     }
   </style>
   %s
