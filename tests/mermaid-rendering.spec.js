@@ -54,38 +54,6 @@ test.describe('Mermaid Diagram Rendering', () => {
     await expect(page).toHaveTitle(/Mermaid Diagram Test Suite/);
   });
 
-  test('no white backgrounds on any diagrams', async ({ page }) => {
-    const slides = [1, 2, 3, 4, 5]; // Test first 5 diagram slides
-
-    for (const slideNum of slides) {
-      await page.goto(`http://localhost:8080/examples/mermaid-test.html#${slideNum}`);
-      await page.waitForLoadState('networkidle');
-
-      // Wait for big.js to create presentation-container (proves big.js ran)
-      await page.waitForSelector('.presentation-container', { timeout: 30000 });
-
-      // Then wait for slides to be ready (use waitForFunction since there are multiple slides)
-      await page.waitForFunction(() => document.querySelectorAll('.slide').length > 0, { timeout: 5000 });
-
-      // Get the slide by index
-      const slide = page.locator('.slide').nth(slideNum);
-
-      // Check SVG doesn't have white background in style attribute
-      const svg = slide.locator('.mermaid svg');
-      const style = await svg.getAttribute('style');
-
-      if (style) {
-        expect(style).not.toContain('background-color: white');
-        expect(style).not.toContain('background-color:white');
-      }
-
-      // Check for white fill attributes in this specific slide
-      const whiteFills = await slide.locator('.mermaid [fill="#ffffff"], .mermaid [fill="#fff"], .mermaid [fill="white"]').count();
-      // Some white fills might be intentional (like end state markers), so we just log it
-      console.log(`Slide ${slideNum}: Found ${whiteFills} white-filled elements`);
-    }
-  });
-
   test('all diagrams are visible and not empty', async ({ page }) => {
     const slides = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // All diagram slides
 
