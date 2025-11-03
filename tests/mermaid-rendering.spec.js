@@ -49,12 +49,15 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(500); // Wait for slide transition
 
-    // Check that SVG exists
-    const svg = page.locator('.mermaid svg');
+    // Get the slide by index (slide 1 is the second .slide div, index 1)
+    const slide = page.locator('.slide').nth(1);
+
+    // Check that SVG exists in this slide
+    const svg = slide.locator('.mermaid svg');
     await expect(svg).toBeVisible();
 
     // Check for flowchart nodes
-    const nodes = page.locator('.mermaid rect.basic');
+    const nodes = slide.locator('.mermaid rect.basic');
     await expect(nodes.first()).toBeVisible();
 
     // Verify dark background on nodes
@@ -62,7 +65,7 @@ test.describe('Mermaid Diagram Rendering', () => {
     expect(nodeStyle).toBe(DARK_THEME_BG);
 
     // Check text is visible (not checking exact color due to SVG complexity)
-    const text = page.locator('.mermaid text');
+    const text = slide.locator('.mermaid text');
     await expect(text.first()).toBeVisible();
   });
 
@@ -72,12 +75,15 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(500);
 
+    // Get the slide by index
+    const slide = page.locator('.slide').nth(2);
+
     // Check that SVG exists
-    const svg = page.locator('.mermaid svg');
+    const svg = slide.locator('.mermaid svg');
     await expect(svg).toBeVisible();
 
     // Check for actor boxes
-    const actors = page.locator('.mermaid rect.actor');
+    const actors = slide.locator('.mermaid rect.actor');
     await expect(actors.first()).toBeVisible();
 
     // Verify actor boxes have dark background
@@ -90,12 +96,15 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#3');
     await page.waitForTimeout(500);
 
+    // Get the slide by index
+    const slide = page.locator('.slide').nth(3);
+
     // Check that SVG exists
-    const svg = page.locator('.mermaid svg');
+    const svg = slide.locator('.mermaid svg');
     await expect(svg).toBeVisible();
 
     // Check for class boxes
-    const classBoxes = page.locator('.mermaid g.classGroup rect');
+    const classBoxes = slide.locator('.mermaid g.classGroup rect');
     await expect(classBoxes.first()).toBeVisible();
 
     // Verify class boxes have dark background
@@ -108,12 +117,15 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#4');
     await page.waitForTimeout(500);
 
+    // Get the slide by index
+    const slide = page.locator('.slide').nth(4);
+
     // Check that SVG exists
-    const svg = page.locator('.mermaid svg');
+    const svg = slide.locator('.mermaid svg');
     await expect(svg).toBeVisible();
 
     // Check for state boxes
-    const stateBoxes = page.locator('.mermaid g.stateGroup rect');
+    const stateBoxes = slide.locator('.mermaid g.stateGroup rect');
     await expect(stateBoxes.first()).toBeVisible();
 
     // Verify state boxes have dark background
@@ -126,12 +138,15 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#5');
     await page.waitForTimeout(500);
 
+    // Get the slide by index
+    const slide = page.locator('.slide').nth(5);
+
     // Check that SVG exists
-    const svg = page.locator('.mermaid svg');
+    const svg = slide.locator('.mermaid svg');
     await expect(svg).toBeVisible();
 
     // Check for entity boxes
-    const entityBoxes = page.locator('.mermaid .entityBox');
+    const entityBoxes = slide.locator('.mermaid .entityBox');
     await expect(entityBoxes.first()).toBeVisible();
 
     // Verify entity boxes have dark background
@@ -146,8 +161,11 @@ test.describe('Mermaid Diagram Rendering', () => {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${slideNum}`);
       await page.waitForTimeout(500);
 
+      // Get the slide by index
+      const slide = page.locator('.slide').nth(slideNum);
+
       // Check SVG doesn't have white background in style attribute
-      const svg = page.locator('.mermaid svg');
+      const svg = slide.locator('.mermaid svg');
       const style = await svg.getAttribute('style');
 
       if (style) {
@@ -155,8 +173,8 @@ test.describe('Mermaid Diagram Rendering', () => {
         expect(style).not.toContain('background-color:white');
       }
 
-      // Check for white fill attributes
-      const whiteFills = await page.locator('.mermaid [fill="#ffffff"], .mermaid [fill="#fff"], .mermaid [fill="white"]').count();
+      // Check for white fill attributes in this specific slide
+      const whiteFills = await slide.locator('.mermaid [fill="#ffffff"], .mermaid [fill="#fff"], .mermaid [fill="white"]').count();
       // Some white fills might be intentional (like end state markers), so we just log it
       console.log(`Slide ${slideNum}: Found ${whiteFills} white-filled elements`);
     }
@@ -169,12 +187,15 @@ test.describe('Mermaid Diagram Rendering', () => {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${slideNum}`);
       await page.waitForTimeout(500);
 
+      // Get the slide by index
+      const slide = page.locator('.slide').nth(slideNum);
+
       // Check that SVG exists and is visible
-      const svg = page.locator('.mermaid svg');
+      const svg = slide.locator('.mermaid svg');
       await expect(svg).toBeVisible();
 
       // Check that SVG has some content (paths, rects, or text)
-      const hasContent = await page.locator('.mermaid svg > g').count();
+      const hasContent = await slide.locator('.mermaid svg > g').count();
       expect(hasContent).toBeGreaterThan(0);
 
       // Take a screenshot for visual regression testing
@@ -195,7 +216,8 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.waitForTimeout(500);
 
     // Check that mermaid container has proper parent with dark class
-    const darkParent = page.locator('.dark .mermaid');
+    const slide = page.locator('.slide').nth(1);
+    const darkParent = slide.locator('.mermaid');
     await expect(darkParent).toBeVisible();
   });
 
@@ -204,12 +226,15 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/advanced.html#10');
     await page.waitForTimeout(500);
 
+    // Get the slide by index (slide 10)
+    const slide = page.locator('.slide').nth(10);
+
     // Check that SVG exists and is visible
-    const svg = page.locator('.mermaid svg');
+    const svg = slide.locator('.mermaid svg');
     await expect(svg).toBeVisible();
 
     // Check for the specific diagram content (gobig -> Markdown -> HTML -> Present!)
-    const text = page.locator('.mermaid text');
+    const text = slide.locator('.mermaid text');
     const textContent = await text.allTextContents();
     const fullText = textContent.join(' ');
 
@@ -219,7 +244,7 @@ test.describe('Mermaid Diagram Rendering', () => {
     expect(fullText).toContain('Present');
 
     // Verify nodes have dark backgrounds
-    const nodes = page.locator('.mermaid rect.basic');
+    const nodes = slide.locator('.mermaid rect.basic');
     await expect(nodes.first()).toBeVisible();
 
     const nodeFill = await nodes.first().getAttribute('fill');
@@ -231,8 +256,11 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.goto('http://localhost:8080/examples/mermaid-test.html#1');
     await page.waitForTimeout(500);
 
+    // Get the slide by index
+    const slide = page.locator('.slide').nth(1);
+
     // Get computed styles for text elements
-    const textElement = page.locator('.mermaid text').first();
+    const textElement = slide.locator('.mermaid text').first();
     await expect(textElement).toBeVisible();
 
     const computedColor = await textElement.evaluate((el) => {
@@ -266,12 +294,15 @@ test.describe('Mermaid Diagram Types Coverage', () => {
       await page.goto(`http://localhost:8080/examples/mermaid-test.html#${diagram.slide}`);
       await page.waitForTimeout(500);
 
+      // Get the slide by index
+      const slide = page.locator('.slide').nth(diagram.slide);
+
       // Check for SVG
-      const svg = page.locator('.mermaid svg');
+      const svg = slide.locator('.mermaid svg');
       await expect(svg).toBeVisible();
 
       // Check no error messages
-      const errorIcon = page.locator('.mermaid .error-icon');
+      const errorIcon = slide.locator('.mermaid .error-icon');
       await expect(errorIcon).not.toBeVisible();
 
       // Log for debugging
