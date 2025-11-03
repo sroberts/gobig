@@ -14,6 +14,7 @@ A command-line tool to generate [big.js](https://github.com/tmcw/big) presentati
 - 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
 - 📊 **Mermaid Diagrams**: Create flowcharts, sequence diagrams, and more
 - 🗣️ **Speaker Notes**: Hidden notes in HTML comments
+- 🎤 **Presenter View**: Dedicated window with slide previews, notes, and timers
 - 📦 **Single Binary**: No dependencies, just one executable
 - 🔒 **Self-Contained**: Generates single HTML file with embedded assets
 - 🖼️ **Image Support**: Auto-converts local images to base64 data URIs
@@ -478,17 +479,35 @@ Once you've generated your HTML presentation, use these controls:
 - **t**: Talk mode (default, single slide)
 - **p**: Print mode (2 slides per page with notes)
 - **j**: Jump mode (grid overview)
+- **r**: Presenter view (speaker notes, timers, and slide previews)
 
 ### Direct Navigation
 
 - Navigate to specific slides using hash: `presentation.html#5`
 - In jump mode, use arrow keys and Enter
 
-### Speaker Notes
+### Presenter View
+
+Press **r** to open the presenter view in a separate window. The presenter view includes:
+
+- **Current slide preview**: See what the audience sees
+- **Next slide preview**: Know what's coming up
+- **Speaker notes**: View notes for the current slide
+- **Elapsed time**: Track how long you've been presenting
+- **Current time**: Keep track of the actual time
+- **Slide counter**: Know your position in the presentation
+
+The presenter view automatically synchronizes with the main presentation window. Navigate slides in either window and both will stay in sync.
+
+**Tip**: Use a second monitor or screen to display the presenter view while projecting the main presentation to your audience.
+
+### Speaker Notes (Console)
+
+Alternative method for viewing speaker notes:
 
 - Open browser developer console (F12 or Cmd+Option+I)
 - Notes appear in console for each slide
-- Use a second screen to view notes while presenting
+- Simpler option if you don't need the full presenter view
 
 ## Examples
 
