@@ -86,11 +86,12 @@ func main() {
 	}
 }
 
-func run(inputFile string) error {
+// generateFromFile parses a markdown file and generates HTML
+func generateFromFile(inputFile string) (string, error) {
 	// Parse markdown file
 	p := parser.NewParser()
 	if err := p.ParseFile(inputFile); err != nil {
-		return fmt.Errorf("failed to parse file: %w", err)
+		return "", fmt.Errorf("failed to parse file: %w", err)
 	}
 
 	slides := p.GetSlides()
@@ -114,7 +115,16 @@ func run(inputFile string) error {
 	gen := generator.NewGenerator(opts)
 	html, err := gen.Generate(slides)
 	if err != nil {
-		return fmt.Errorf("failed to generate HTML: %w", err)
+		return "", fmt.Errorf("failed to generate HTML: %w", err)
+	}
+
+	return html, nil
+}
+
+func run(inputFile string) error {
+	html, err := generateFromFile(inputFile)
+	if err != nil {
+		return err
 	}
 
 	// Output HTML
@@ -133,7 +143,7 @@ func run(inputFile string) error {
 }
 
 func runServer(inputFile string) error {
-	// Keep track of the generated HTML and last modified time
+	// Keep track of the generated HTML
 	var (
 		currentHTML   string
 		lastMod       time.Time
@@ -143,34 +153,12 @@ func runServer(inputFile string) error {
 
 	// Function to generate HTML from markdown
 	generateHTML := func() error {
-		// Parse markdown file
-		p := parser.NewParser()
-		if err := p.ParseFile(inputFile); err != nil {
-			return fmt.Errorf("failed to parse file: %w", err)
-		}
-
-		slides := p.GetSlides()
-		presentationMetadata := p.GetPresentationMetadata()
-
-		// Get base path for resolving relative image paths
-		basePath, err := filepath.Abs(filepath.Dir(inputFile))
+		html, err := generateFromFile(inputFile)
 		if err != nil {
-			basePath = filepath.Dir(inputFile)
-		}
-
-		// Generate HTML
-		opts := generator.Options{
-			Theme:                *theme,
-			Title:                *title,
-			AspectRatio:          *aspectRatio,
-			BasePath:             basePath,
-			PresentationMetadata: presentationMetadata,
-		}
-
-		gen := generator.NewGenerator(opts)
-		html, err := gen.Generate(slides)
-		if err != nil {
-			return fmt.Errorf("failed to generate HTML: %w", err)
+			mu.Lock()
+			generateError = err
+			mu.Unlock()
+			return err
 		}
 
 		mu.Lock()
@@ -191,7 +179,10 @@ func runServer(inputFile string) error {
 	if err != nil {
 		return fmt.Errorf("failed to stat file: %w", err)
 	}
+	
+	mu.Lock()
 	lastMod = fileInfo.ModTime()
+	mu.Unlock()
 
 	log.Printf("Serving presentation from %s", inputFile)
 
@@ -208,14 +199,18 @@ func runServer(inputFile string) error {
 					continue
 				}
 
-				if fileInfo.ModTime().After(lastMod) {
+				mu.RLock()
+				currentLastMod := lastMod
+				mu.RUnlock()
+
+				if fileInfo.ModTime().After(currentLastMod) {
+					mu.Lock()
 					lastMod = fileInfo.ModTime()
+					mu.Unlock()
+					
 					log.Printf("File changed, regenerating...")
 					if err := generateHTML(); err != nil {
 						log.Printf("Error regenerating: %v", err)
-						mu.Lock()
-						generateError = err
-						mu.Unlock()
 					} else {
 						log.Printf("Presentation regenerated successfully")
 					}
