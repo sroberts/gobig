@@ -376,7 +376,7 @@ addEventListener("load", () => {
         iframe.style.height = `${viewportHeight}px`;
         iframe.style.transform = `scale(${scale})`;
         iframe.style.transformOrigin = "top left";
-        iframe.setAttribute("sandbox", "allow-same-origin");
+        iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
         currentSlideEl.style.width = `${viewportWidth * scale}px`;
         currentSlideEl.style.height = `${viewportHeight * scale}px`;
         currentSlideEl.appendChild(iframe);
