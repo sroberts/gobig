@@ -18,8 +18,9 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('.presentation-container', { timeout: 10000 });
 
-    // Wait a bit for page to fully render
-    await page.waitForTimeout(2000);
+    // Wait for mermaid diagrams to be rendered (looking for SVG elements inside mermaid containers)
+    // Use state: 'attached' instead of default 'visible' since not all slides are visible
+    await page.waitForSelector('.mermaid svg', { timeout: 10000, state: 'attached' });
 
     // Check that mermaid containers exist (proves Mermaid rendered)
     const mermaidContainers = page.locator('.mermaid');
@@ -34,8 +35,9 @@ test.describe('Mermaid Diagram Rendering', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForSelector('.presentation-container', { timeout: 10000 });
 
-    // Wait a bit for page to fully render
-    await page.waitForTimeout(2000);
+    // Wait for mermaid diagrams to be rendered (looking for SVG elements inside mermaid containers)
+    // Use state: 'attached' instead of default 'visible' since not all slides are visible
+    await page.waitForSelector('.mermaid svg', { timeout: 10000, state: 'attached' });
 
     // Check that mermaid content exists
     const mermaidContainers = page.locator('.mermaid');
