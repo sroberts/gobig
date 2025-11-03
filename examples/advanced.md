@@ -1,10 +1,6 @@
-<!-- presentation
-time-to-next: 3
--->
-
 # Advanced Features
 
-gobig demonstration with auto-advance
+gobig demonstration
 
 ---
 
@@ -130,17 +126,21 @@ You can use **bold**, *italic*, and ~~strikethrough~~.
 
 ---
 
-<!-- slide
-time-to-next: 5
--->
+## Advanced Features Demo
 
-## Override Auto-Advance
-
-This slide overrides the presentation default and advances after 5 seconds instead of 3.
+This presentation demonstrates various advanced features of gobig.
 
 Perfect for **PechaKucha** or **Ignite** style presentations!
 
-<!-- This demonstrates how per-slide time-to-next overrides the presentation default -->
+---
+
+```mermaid
+graph TD
+    A[Markdown] -->|gobig| B[HTML]
+    B --> C[Present!]
+```
+
+<!-- Mermaid diagrams are rendered to SVG at build time -->
 
 ---
 
