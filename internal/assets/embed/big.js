@@ -1,4 +1,6 @@
 let ASPECT_RATIO = window.BIG_ASPECT_RATIO === undefined ? 1.6 : window.BIG_ASPECT_RATIO;
+// Delay in milliseconds to allow DOM layout to complete before scaling notes
+const NOTES_SCALING_DELAY = 50;
 
 function parseHash() {
   return parseInt(window.location.hash.substring(1), 10);
@@ -618,7 +620,7 @@ addEventListener("load", () => {
     updatePresenterTimers();
 
     // Scale notes to fit if in scale-to-fit mode
-    setTimeout(() => scaleNotesToFit(), 50);
+    setTimeout(() => scaleNotesToFit(), NOTES_SCALING_DELAY);
   }
 
   function onPrint() {
