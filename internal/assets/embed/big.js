@@ -442,9 +442,8 @@ addEventListener("load", () => {
         }
         fontSize -= step;
       }
-      if (hitMinFontSize) {
-        fontSize += step;
-      }
+      // Always add back the last step after the loop, since fontSize was reduced one extra time
+      fontSize += step;
     }
 
     // Clamp to min/max
