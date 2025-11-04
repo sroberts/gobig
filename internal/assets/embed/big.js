@@ -12,25 +12,48 @@ function parseHash() {
  * @param {number} maxHeight - Maximum height constraint
  * @param {Array<number>} steps - Array of step sizes for iterative refinement (e.g., [100, 50, 10, 2])
  * @param {Function} fitsCheck - Custom function to check if element fits (element, maxWidth, maxHeight) => boolean
+ * @param {number} minFontSize - Minimum font size (default: 0)
+ * @param {number} maxFontSize - Maximum font size (default: startFontSize)
  * @returns {number} Optimal font size
  */
-function calculateOptimalFontSize(element, startFontSize, maxWidth, maxHeight, steps, fitsCheck) {
+function calculateOptimalFontSize(element, startFontSize, maxWidth, maxHeight, steps, fitsCheck, minFontSize = 0, maxFontSize = startFontSize) {
   let fontSize = startFontSize;
   
   for (let step of steps) {
-    // Decrease font size until it fits or we go below zero
-    while (fontSize > 0) {
+    let fittingFound = false;
+    // Decrease font size until it fits or we go below minFontSize
+    while (fontSize > minFontSize) {
       element.style.fontSize = `${fontSize}px`;
       if (fitsCheck(element, maxWidth, maxHeight)) {
+        fittingFound = true;
         break;
       }
       fontSize -= step;
     }
-    // Add back one step since we went one step too far
-    fontSize += step;
+    // Only add back the step if we decreased below minFontSize without finding a fit
+    if (!fittingFound && fontSize <= minFontSize) {
+      fontSize += step;
+    }
   }
   
-  return Math.max(0, fontSize);
+  return Math.max(minFontSize, Math.min(maxFontSize, fontSize));
+}
+
+/**
+ * Applies standard styling to a slide div element
+ * @param {HTMLElement} slideDiv - The slide div element to style
+ * @param {number} width - Width of the slide
+ * @param {number} height - Height of the slide
+ * @param {Window} win - The window object for getComputedStyle (defaults to global window)
+ */
+function applySlideDivStyles(slideDiv, width, height, win = window) {
+  let padding = Math.min(width * 0.04);
+  slideDiv.style.width = `${width}px`;
+  slideDiv.style.height = `${height}px`;
+  slideDiv.style.padding = `${padding}px`;
+  if (win.getComputedStyle(slideDiv).display === "grid") {
+    slideDiv.style.height = `${height - padding * 2}px`;
+  }
 }
 
 function emptyNode(node) {
@@ -107,12 +130,10 @@ addEventListener("load", () => {
   }
 
   function resizeTo(sc, width, height) {
-    let slideDiv = sc.firstChild,
-      padding = Math.min(width * 0.04);
+    let slideDiv = sc.firstChild;
     sc.style.width = `${width}px`;
     sc.style.height = `${height}px`;
-    slideDiv.style.padding = `${padding}px`;
-    if (getComputedStyle(slideDiv).display === "grid") slideDiv.style.height = `${height - padding * 2}px`;
+    applySlideDivStyles(slideDiv, width, height);
     
     const fontSize = calculateOptimalFontSize(
       slideDiv,
@@ -460,12 +481,12 @@ addEventListener("load", () => {
       wrapperHeight,
       [2, 1, 0.5],
       (elem, maxWidth, maxHeight) =>
-        elem.scrollHeight <= maxHeight && elem.scrollWidth <= maxWidth
+        elem.scrollHeight <= maxHeight && elem.scrollWidth <= maxWidth,
+      minFontSize,
+      maxFontSize
     );
 
-    // Clamp to min/max and apply
-    const clampedFontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize));
-    notesContent.style.fontSize = `${clampedFontSize}px`;
+    notesContent.style.fontSize = `${fontSize}px`;
   }
 
   function createSlidePreview(slideContainer, targetElement, viewportWidth, viewportHeight, scale) {
@@ -520,13 +541,7 @@ addEventListener("load", () => {
     // Apply proper sizing using the same resizeTo logic as main presentation
     const slideDiv = iframe.contentDocument.body.firstElementChild;
     if (slideDiv) {
-      let padding = Math.min(viewportWidth * 0.04);
-      slideDiv.style.width = `${viewportWidth}px`;
-      slideDiv.style.height = `${viewportHeight}px`;
-      slideDiv.style.padding = `${padding}px`;
-      if (iframe.contentWindow.getComputedStyle(slideDiv).display === "grid") {
-        slideDiv.style.height = `${viewportHeight - padding * 2}px`;
-      }
+      applySlideDivStyles(slideDiv, viewportWidth, viewportHeight, iframe.contentWindow);
       
       // Calculate optimal font size using utility function
       const fontSize = calculateOptimalFontSize(
