@@ -492,19 +492,20 @@ addEventListener("load", () => {
         </style>
       </head>
       <body class="${document.body.className}">
-        ${clone.innerHTML}
+        ${clone.outerHTML}
       </body>
       </html>
     `);
     iframe.contentDocument.close();
 
     // Apply proper sizing using the same resizeTo logic as main presentation
-    const slideDiv = iframe.contentDocument.body.firstElementChild;
-    if (slideDiv) {
+    const sc = iframe.contentDocument.body.firstElementChild;
+    if (sc) {
+      const slideDiv = sc.firstChild;
       let padding = Math.min(viewportWidth * 0.04);
       let fontSize = viewportHeight;
-      slideDiv.style.width = `${viewportWidth}px`;
-      slideDiv.style.height = `${viewportHeight}px`;
+      sc.style.width = `${viewportWidth}px`;
+      sc.style.height = `${viewportHeight}px`;
       slideDiv.style.padding = `${padding}px`;
       if (iframe.contentWindow.getComputedStyle(slideDiv).display === "grid") {
         slideDiv.style.height = `${viewportHeight - padding * 2}px`;
