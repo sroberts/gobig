@@ -42,10 +42,7 @@ const htmlTemplate = `<!DOCTYPE html>
       font-weight: bold;
     }
     
-    /* Background color support for slides */
-    div[data-background-color] {
-      background-color: var(--bg-color) !important;
-    }
+    /* Background color support for slides - set via JavaScript */
     
     /* Autoscale support */
     div[data-autoscale="true"] {

@@ -345,11 +345,7 @@ func (p *Parser) processDeckSetImages(content string, slide *Slide) string {
 			slide.Metadata.Layout = "50-50"
 		} else if hasLeft || hasRight {
 			// One image on side, content on other
-			if hasLeft {
-				slide.Metadata.Layout = "50-50"
-			} else {
-				slide.Metadata.Layout = "50-50"
-			}
+			slide.Metadata.Layout = "50-50"
 		}
 	}
 	
