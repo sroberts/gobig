@@ -586,12 +586,16 @@ See the `examples/` directory for sample presentations:
 
 - `basic.md` - Simple presentation demonstrating core features
 - `advanced.md` - Advanced features including layouts, notes, and customization
+- `deckset-format.md` - DeckSet syntax examples
+- `deckset-comprehensive.md` - Comprehensive DeckSet feature showcase
+- `mixed-syntax.md` - Mixing gobig and DeckSet syntax
 
 Generate the examples:
 
 ```bash
 gobig -o basic.html examples/basic.md
 gobig -theme light -o advanced.html examples/advanced.md
+gobig -o deckset.html examples/deckset-comprehensive.md
 ```
 
 ## Project Structure
