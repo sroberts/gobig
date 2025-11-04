@@ -357,7 +357,7 @@ addEventListener("load", () => {
         notesWrapper.classList.add("scale-to-fit");
         notesToggleBtn.textContent = "Scrollable";
         // Re-scale the notes
-        scaleNotesToFit();
+        setTimeout(scaleNotesToFit, NOTES_SCALING_DELAY);
       }
     });
 
