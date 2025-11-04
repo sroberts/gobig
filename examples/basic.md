@@ -2,7 +2,7 @@
 
 A markdown-to-big.js presentation tool
 
-<!-- This is a speaker note. It won't appear on the slide but will be visible in the browser console -->
+^ This is a speaker note. It won't appear on the slide but will be visible in the browser console
 
 ---
 
@@ -10,7 +10,7 @@ A markdown-to-big.js presentation tool
 
 - Simple markdown syntax
 - Horizontal rules (`---`) separate slides
-- Speaker notes in HTML comments
+- Speaker notes with ^ prefix
 - Multiple themes
 - Grid-based layouts
 
@@ -25,7 +25,7 @@ go install gobig
 gobig presentation.md -o index.html
 ```
 
-<!-- Remember to mention the installation options -->
+^ Remember to mention the installation options
 
 ---
 

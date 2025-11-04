@@ -5,16 +5,15 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/sroberts/gobig)](https://go.dev/)
 [![License](https://img.shields.io/github/license/sroberts/gobig)](LICENSE)
 
-A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes. Now with **DeckSet format compatibility**!
+A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files using **DeckSet format**. Create beautiful, minimal presentations with a standardized markdown syntax.
 
 ## Features
 
-- 📝 **Simple Markdown**: Write presentations in familiar markdown syntax
-- 🎯 **DeckSet Format**: Compatible with DeckSet markdown syntax
+- 📝 **DeckSet Format**: Uses the popular DeckSet markdown syntax
 - 🎨 **Three Themes**: Dark, light, and white themes included
-- 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
+- 📐 **Image Positioning**: Use `![left]`, `![right]`, `![fit]` modifiers
 - 📊 **Mermaid Diagrams**: Create flowcharts, sequence diagrams, and more
-- 🗣️ **Speaker Notes**: Support for both HTML comments and DeckSet `^` syntax
+- 🗣️ **Speaker Notes**: Use `^` prefix for notes
 - 🎤 **Presenter View**: Dedicated window with slide previews, notes, and timers
 - 📦 **Single Binary**: No dependencies, just one executable
 - 🔒 **Self-Contained**: Generates single HTML file with embedded assets
@@ -151,35 +150,21 @@ More content
 
 ### Speaker Notes
 
-**gobig style (HTML comments):**
+Use the `^` prefix for speaker notes:
 
 ```markdown
 # My Slide
 
 Visible content
 
-<!--
-This is a speaker note.
-It will appear in the browser console when presenting.
-Multi-line notes are supported!
--->
-```
-
-**DeckSet style (caret prefix):**
-
-```markdown
-# My Slide
-
-Visible content
-
-^ This is a DeckSet-style speaker note
+^ This is a speaker note
 ^ You can have multiple lines
 ^ Each line starts with a caret
 ```
 
-### DeckSet Format Support
+### DeckSet Format
 
-gobig now supports [DeckSet](https://www.deckset.com/) markdown syntax! This means you can use DeckSet presentations directly with gobig.
+gobig uses [DeckSet](https://www.deckset.com/) markdown syntax for presentations.
 
 **Global Configuration (at the top of file):**
 
@@ -237,14 +222,11 @@ Supported DeckSet features:
 
 ### Slide Metadata
 
-Add metadata to slides using YAML frontmatter in comments:
+Add metadata to slides using DeckSet per-slide directives:
 
 ```markdown
-<!-- slide
-layout: 50-50
-class: custom-class
-time-to-next: 10
--->
+[.layout: 50-50]
+[.time-to-next: 10]
 
 # Slide with Metadata
 ```
@@ -252,20 +234,19 @@ time-to-next: 10
 Available metadata fields:
 
 - `layout`: Grid layout (see Layouts section)
-- `class`: Custom CSS class for the slide
-- `body-style`: Custom CSS for the body element
-- `body-class`: Custom class for the body element
-- `time-to-next`: Auto-advance time in seconds (overrides presentation default if set)
+- `autoscale`: Scale text to fit slide
+- `background-color`: Custom background color
+- `time-to-next`: Auto-advance time in seconds (overrides presentation default)
 
 ### Presentation Metadata
 
-Add presentation-wide metadata at the beginning of your markdown file using YAML frontmatter in comments. This must appear before any slide separators (`---`):
+Add presentation-wide metadata at the beginning of your markdown file. This must appear before any slide separators (`---`):
 
 ```markdown
-<!-- presentation
 time-to-next: 5
 title: My Presentation
--->
+
+---
 
 # First Slide
 
@@ -282,6 +263,9 @@ Available presentation metadata fields:
 
 - `time-to-next`: Default auto-advance time in seconds for all slides
 - `title`: Presentation title (overrides `-title` flag)
+- `autoscale`: Scale text to fit slides
+- `slidenumbers`: Show slide numbers
+- `footer`: Persistent footer text
 
 **Note:** Per-slide `time-to-next` values override the presentation-level default. This allows you to set a default timing for all slides while customizing individual slides as needed.
 
@@ -290,9 +274,9 @@ Available presentation metadata fields:
 Set a default timing for all slides, with specific slides overriding:
 
 ```markdown
-<!-- presentation
 time-to-next: 5
--->
+
+---
 
 # Slide 1
 Advances after 5 seconds (default)
@@ -304,9 +288,7 @@ Also advances after 5 seconds (default)
 
 ---
 
-<!-- slide
-time-to-next: 10
--->
+[.time-to-next: 10]
 
 # Slide 3
 Overrides default - advances after 10 seconds
@@ -325,41 +307,41 @@ Different presentation formats have standard timing requirements:
 
 **PechaKucha (20x20)**
 ```markdown
-<!-- presentation
 time-to-next: 20
--->
+
+---
+
+# First Slide
 ```
 20 slides, 20 seconds each = 6 minutes 40 seconds total
 
 **Ignite (5x15)**
 ```markdown
-<!-- presentation
 time-to-next: 15
--->
+
+---
+
+# First Slide
 ```
 20 slides, 15 seconds each = 5 minutes total
 
 **Custom Format**
 ```markdown
-<!-- presentation
 time-to-next: 30
--->
+
+---
 
 # Most slides advance after 30 seconds
 
 ---
 
-<!-- slide
-time-to-next: 60
--->
+[.time-to-next: 60]
 
 # Important slide - give audience more time
 
 ---
 
-<!-- slide
-time-to-next: 5
--->
+[.time-to-next: 5]
 
 # Quick transition slide
 ```
@@ -588,7 +570,6 @@ See the `examples/` directory for sample presentations:
 - `advanced.md` - Advanced features including layouts, notes, and customization
 - `deckset-format.md` - DeckSet syntax examples
 - `deckset-comprehensive.md` - Comprehensive DeckSet feature showcase
-- `mixed-syntax.md` - Mixing gobig and DeckSet syntax
 
 Generate the examples:
 

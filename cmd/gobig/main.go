@@ -108,7 +108,7 @@ func run(inputFile string) error {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, `gobig - Generate big.js presentations from Markdown
+	fmt.Fprintf(os.Stderr, `gobig - Generate big.js presentations from Markdown (DeckSet format)
 
 Usage:
   gobig [options] <input.md>
@@ -126,24 +126,21 @@ Examples:
   gobig -theme light -o output.html slides.md
   gobig -aspect-ratio 2 -title "My Talk" -o slides.html talk.md
 
-Markdown Syntax:
+DeckSet Syntax:
   Slides:      Separate with --- (horizontal rule)
-  Notes:       Use HTML comments: <!-- speaker notes here -->
-  Metadata:    Use YAML frontmatter in comments:
-               <!-- slide
-               layout: 50-50
-               class: custom-class
-               -->
+  Notes:       Use ^ prefix: ^ speaker notes here
+  Metadata:    Use directives at slide start:
+               [.layout: 50-50]
+               [.autoscale: true]
+  
+  Headers:     # [fit] Big Text - scales to fill slide
+  Images:      ![left](image.jpg) - position with modifiers
 
-Layouts:
-  50-50         Two columns (50%% each)
-  75-25         Two columns (75%%, 25%%)
-  25-75         Two columns (25%%, 75%%)
-  50-50-rows    Two rows (50%% each)
-  75-25-rows    Two rows (75%%, 25%%)
-  grid-3x2      3 columns, 2 rows
-  Custom CSS    Use custom grid-template syntax
+Global Config (at file top):
+  autoscale: true
+  slidenumbers: true
+  footer: My Footer
 
-For more information: https://github.com/tmcw/big
+For more information: https://github.com/sroberts/gobig
 `)
 }

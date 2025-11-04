@@ -8,22 +8,16 @@ gobig demonstration
 
 This slide has detailed speaker notes.
 
-<!--
-Speaker notes can be multi-line!
-
-Remember to:
-- Explain the context
-- Give examples
-- Take questions
-
-These notes appear in the browser console when presenting.
--->
+^ Speaker notes can be multi-line!
+^ Remember to:
+^ - Explain the context
+^ - Give examples
+^ - Take questions
+^ These notes appear in the browser console when presenting.
 
 ---
 
-<!-- slide
-layout: 50-50
--->
+[.layout: 50-50]
 
 ![Puppy in leaves](https://pixnio.com/free-images/fauna-animals/dogs/puppy-in-leaves.jpg)
 
@@ -35,9 +29,7 @@ Perfect for *image + description* slides!
 
 ---
 
-<!-- slide
-layout: 75-25-rows
--->
+[.layout: 75-25-rows]
 
 ![Puppy in leaves](https://pixnio.com/free-images/fauna-animals/dogs/puppy-in-leaves.jpg)
 
@@ -45,9 +37,7 @@ Image takes 75% height, text takes 25%
 
 ---
 
-<!-- slide
-layout: 25-75
--->
+[.layout: 25-75]
 
 ![Puppy in leaves](https://pixnio.com/free-images/fauna-animals/dogs/puppy-in-leaves.jpg)
 
@@ -69,13 +59,11 @@ function demo() {
 }
 ```
 
-<!-- Remind the audience that code should be minimal and focused -->
+^ Remind the audience that code should be minimal and focused
 
 ---
 
-<!-- slide
-layout: grid-3x2
--->
+[.layout: grid-3x2]
 
 **Feature 1**
 
@@ -140,7 +128,7 @@ graph TD
     B --> C[Present!]
 ```
 
-<!-- Mermaid diagrams are rendered to SVG at build time -->
+^ Mermaid diagrams are rendered to SVG at build time
 
 ---
 

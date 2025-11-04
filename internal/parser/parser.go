@@ -11,15 +11,6 @@ import (
 )
 
 var (
-	// Regex to match presentation frontmatter: <!-- presentation ... -->
-	presentationFrontmatterRegex = regexp.MustCompile(`(?s)^\s*<!--\s*presentation\s+(.*?)\s*-->`)
-
-	// Regex to match slide frontmatter: <!-- slide ... -->
-	slideFrontmatterRegex = regexp.MustCompile(`(?s)<!--\s*slide\s+(.*?)\s*-->`)
-
-	// Regex to match any HTML comment
-	htmlCommentRegex = regexp.MustCompile(`(?s)<!--(.*?)-->`)
-	
 	// DeckSet per-slide directive regex: [.command: value]
 	decksetDirectiveRegex = regexp.MustCompile(`(?m)^\s*\[\.([\w-]+):\s*([^\]]+)\]\s*$`)
 	
@@ -92,26 +83,9 @@ func (p *Parser) GetPresentationMetadata() PresentationMetadata {
 	return p.presentationMetadata
 }
 
-// extractPresentationFrontmatter extracts and parses presentation-level YAML frontmatter
+// extractPresentationFrontmatter extracts and parses DeckSet global configuration
 func (p *Parser) extractPresentationFrontmatter(content string) string {
-	// First try HTML comment style (gobig native)
-	matches := presentationFrontmatterRegex.FindStringSubmatch(content)
-	if len(matches) > 1 {
-		yamlContent := matches[1]
-
-		// Parse YAML
-		err := yaml.Unmarshal([]byte(yamlContent), &p.presentationMetadata)
-		if err != nil {
-			// If YAML parsing fails, just ignore the frontmatter
-			fmt.Fprintf(os.Stderr, "Warning: failed to parse presentation metadata: %v\n", err)
-		}
-
-		// Remove frontmatter from content
-		content = presentationFrontmatterRegex.ReplaceAllString(content, "")
-		return content
-	}
-	
-	// Try DeckSet global configuration format (key: value at top of file)
+	// Extract DeckSet global configuration format (key: value at top of file)
 	content = p.extractDeckSetGlobalConfig(content)
 	
 	return content
@@ -184,72 +158,19 @@ func (p *Parser) parseSlide(content string) (*Slide, error) {
 		Metadata: SlideMetadata{},
 	}
 
-	// Extract frontmatter (gobig style)
-	content = p.extractFrontmatter(content, slide)
-
 	// Extract DeckSet directives
 	content = p.extractDeckSetDirectives(content, slide)
 	
 	// Process DeckSet image modifiers
 	content = p.processDeckSetImages(content, slide)
 
-	// Extract speaker notes (both styles)
-	content = p.extractNotes(content, slide)
+	// Extract DeckSet speaker notes
 	content = p.extractDeckSetNotes(content, slide)
 
 	// Remaining content is the slide content
 	slide.Content = strings.TrimSpace(content)
 
 	return slide, nil
-}
-
-// extractFrontmatter extracts and parses YAML frontmatter from slide content
-func (p *Parser) extractFrontmatter(content string, slide *Slide) string {
-	matches := slideFrontmatterRegex.FindStringSubmatch(content)
-	if len(matches) > 1 {
-		yamlContent := matches[1]
-
-		// Parse YAML
-		err := yaml.Unmarshal([]byte(yamlContent), &slide.Metadata)
-		if err != nil {
-			// If YAML parsing fails, just ignore the frontmatter
-			fmt.Fprintf(os.Stderr, "Warning: failed to parse slide metadata: %v\n", err)
-		}
-
-		// Remove frontmatter from content
-		content = slideFrontmatterRegex.ReplaceAllString(content, "")
-	}
-
-	return content
-}
-
-// extractNotes extracts speaker notes from HTML comments
-// This is called AFTER extractFrontmatter, so all remaining comments are notes
-func (p *Parser) extractNotes(content string, slide *Slide) string {
-	var notes []string
-
-	matches := htmlCommentRegex.FindAllStringSubmatch(content, -1)
-	for _, match := range matches {
-		if len(match) > 1 {
-			noteContent := strings.TrimSpace(match[1])
-			// Only add non-empty notes
-			if noteContent != "" {
-				notes = append(notes, noteContent)
-			}
-		}
-	}
-
-	if len(notes) > 0 {
-		if slide.Notes != "" {
-			slide.Notes += "\n"
-		}
-		slide.Notes += strings.Join(notes, "\n")
-	}
-
-	// Remove all HTML comments from content
-	content = htmlCommentRegex.ReplaceAllString(content, "")
-
-	return content
 }
 
 // extractDeckSetDirectives extracts DeckSet per-slide directives [.command: value]
@@ -300,10 +221,7 @@ func (p *Parser) extractDeckSetNotes(content string, slide *Slide) string {
 	}
 	
 	if len(notes) > 0 {
-		if slide.Notes != "" {
-			slide.Notes += "\n"
-		}
-		slide.Notes += strings.Join(notes, "\n")
+		slide.Notes = strings.Join(notes, "\n")
 	}
 	
 	// Remove DeckSet notes from content
