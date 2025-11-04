@@ -431,13 +431,11 @@ addEventListener("load", () => {
 
     // Try to find optimal font size
     for (let step of [2, 1, 0.5]) {
-      let hitMinFontSize = true;
       while (fontSize >= minFontSize) {
         notesContent.style.fontSize = `${fontSize}px`;
 
         if (notesContent.scrollHeight <= wrapperHeight &&
             notesContent.scrollWidth <= wrapperWidth) {
-          hitMinFontSize = false;
           break;
         }
         fontSize -= step;
