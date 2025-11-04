@@ -157,14 +157,14 @@ func (g *Generator) generateSlide(slide *parserPkg.Slide) string {
 	if slide.Metadata.BodyClass != "" {
 		sb.WriteString(fmt.Sprintf(` data-body-class="%s"`, escapeAttr(slide.Metadata.BodyClass)))
 	}
-	
+
 	// DeckSet-specific attributes
 	if slide.Metadata.Autoscale != nil {
 		sb.WriteString(fmt.Sprintf(` data-autoscale="%t"`, *slide.Metadata.Autoscale))
 	} else if g.options.PresentationMetadata.Autoscale {
 		sb.WriteString(` data-autoscale="true"`)
 	}
-	
+
 	if slide.Metadata.BackgroundColor != "" {
 		sb.WriteString(fmt.Sprintf(` data-background-color="%s"`, escapeAttr(slide.Metadata.BackgroundColor)))
 	}
@@ -215,7 +215,7 @@ func (g *Generator) generateLayoutSlide(slide *parserPkg.Slide) string {
 func (g *Generator) markdownToHTML(markdown string) string {
 	// Process DeckSet [fit] headers before conversion
 	markdown = g.processFitHeaders(markdown)
-	
+
 	var buf bytes.Buffer
 	if err := g.md.Convert([]byte(markdown), &buf); err != nil {
 		return markdown // Fallback to raw content
@@ -236,7 +236,7 @@ func (g *Generator) markdownToHTML(markdown string) string {
 func (g *Generator) processFitHeaders(markdown string) string {
 	// Match headers with [fit]: # [fit] Text or ## [fit] Text
 	fitHeaderRegex := regexp.MustCompile(`(?m)^(#{1,6})\s*\[fit\]\s*(.+)$`)
-	
+
 	return fitHeaderRegex.ReplaceAllStringFunc(markdown, func(match string) string {
 		submatches := fitHeaderRegex.FindStringSubmatch(match)
 		if len(submatches) > 2 {

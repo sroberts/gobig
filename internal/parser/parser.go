@@ -13,10 +13,10 @@ import (
 var (
 	// DeckSet per-slide directive regex: [.command: value]
 	decksetDirectiveRegex = regexp.MustCompile(`(?m)^\s*\[\.([\w-]+):\s*([^\]]+)\]\s*$`)
-	
+
 	// DeckSet global config regex (key: value at start of file)
 	decksetGlobalConfigRegex = regexp.MustCompile(`(?m)^([\w-]+):\s*(.+)\s*$`)
-	
+
 	// DeckSet speaker note regex: ^ Note text
 	decksetNoteRegex = regexp.MustCompile(`(?m)^\^(.*)$`)
 )
@@ -87,7 +87,7 @@ func (p *Parser) GetPresentationMetadata() PresentationMetadata {
 func (p *Parser) extractPresentationFrontmatter(content string) string {
 	// Extract DeckSet global configuration format (key: value at top of file)
 	content = p.extractDeckSetGlobalConfig(content)
-	
+
 	return content
 }
 
@@ -96,12 +96,12 @@ func (p *Parser) extractDeckSetGlobalConfig(content string) string {
 	lines := strings.Split(content, "\n")
 	configLines := 0
 	configMap := make(map[string]string)
-	
+
 	// Read configuration lines from the top of the file
 	// They must be consecutive with no blank lines between them
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		// Stop at first blank line or non-config line
 		if trimmed == "" {
 			if configLines > 0 {
@@ -109,12 +109,12 @@ func (p *Parser) extractDeckSetGlobalConfig(content string) string {
 			}
 			continue // Skip leading blank lines
 		}
-		
+
 		// Check if it's a slide separator
 		if isHorizontalRule(trimmed) {
 			break
 		}
-		
+
 		// Try to match config line
 		if matches := decksetGlobalConfigRegex.FindStringSubmatch(line); len(matches) > 2 {
 			key := strings.TrimSpace(matches[1])
@@ -129,7 +129,7 @@ func (p *Parser) extractDeckSetGlobalConfig(content string) string {
 			break
 		}
 	}
-	
+
 	// If we found config, parse it and remove from content
 	if configLines > 0 {
 		// Build YAML from config map
@@ -137,18 +137,18 @@ func (p *Parser) extractDeckSetGlobalConfig(content string) string {
 		for key, value := range configMap {
 			yamlBuilder.WriteString(fmt.Sprintf("%s: %s\n", key, value))
 		}
-		
+
 		// Parse YAML
 		err := yaml.Unmarshal([]byte(yamlBuilder.String()), &p.presentationMetadata)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to parse DeckSet global config: %v\n", err)
 		}
-		
+
 		// Remove config lines from content
 		remainingLines := lines[configLines:]
 		content = strings.Join(remainingLines, "\n")
 	}
-	
+
 	return content
 }
 
@@ -160,7 +160,7 @@ func (p *Parser) parseSlide(content string) (*Slide, error) {
 
 	// Extract DeckSet directives
 	content = p.extractDeckSetDirectives(content, slide)
-	
+
 	// Process DeckSet image modifiers
 	content = p.processDeckSetImages(content, slide)
 
@@ -176,11 +176,11 @@ func (p *Parser) parseSlide(content string) (*Slide, error) {
 // extractDeckSetDirectives extracts DeckSet per-slide directives [.command: value]
 func (p *Parser) extractDeckSetDirectives(content string, slide *Slide) string {
 	matches := decksetDirectiveRegex.FindAllStringSubmatch(content, -1)
-	
+
 	if len(matches) == 0 {
 		return content
 	}
-	
+
 	// Build YAML from directives
 	var yamlBuilder strings.Builder
 	for _, match := range matches {
@@ -190,7 +190,7 @@ func (p *Parser) extractDeckSetDirectives(content string, slide *Slide) string {
 			yamlBuilder.WriteString(fmt.Sprintf("%s: %s\n", key, value))
 		}
 	}
-	
+
 	// Parse YAML into slide metadata
 	if yamlBuilder.Len() > 0 {
 		err := yaml.Unmarshal([]byte(yamlBuilder.String()), &slide.Metadata)
@@ -198,17 +198,17 @@ func (p *Parser) extractDeckSetDirectives(content string, slide *Slide) string {
 			fmt.Fprintf(os.Stderr, "Warning: failed to parse DeckSet directives: %v\n", err)
 		}
 	}
-	
+
 	// Remove directives from content
 	content = decksetDirectiveRegex.ReplaceAllString(content, "")
-	
+
 	return content
 }
 
 // extractDeckSetNotes extracts DeckSet speaker notes (lines starting with ^)
 func (p *Parser) extractDeckSetNotes(content string, slide *Slide) string {
 	var notes []string
-	
+
 	matches := decksetNoteRegex.FindAllStringSubmatch(content, -1)
 	for _, match := range matches {
 		if len(match) > 1 {
@@ -219,14 +219,14 @@ func (p *Parser) extractDeckSetNotes(content string, slide *Slide) string {
 			}
 		}
 	}
-	
+
 	if len(notes) > 0 {
 		slide.Notes = strings.Join(notes, "\n")
 	}
-	
+
 	// Remove DeckSet notes from content
 	content = decksetNoteRegex.ReplaceAllString(content, "")
-	
+
 	return content
 }
 
@@ -234,16 +234,16 @@ func (p *Parser) extractDeckSetNotes(content string, slide *Slide) string {
 func (p *Parser) processDeckSetImages(content string, slide *Slide) string {
 	// Regex to match DeckSet image syntax: ![modifiers](path)
 	decksetImageRegex := regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
-	
+
 	matches := decksetImageRegex.FindAllStringSubmatch(content, -1)
 	if len(matches) == 0 {
 		return content
 	}
-	
+
 	// Check for left/right positioning which implies a layout
 	hasLeft := false
 	hasRight := false
-	
+
 	for _, match := range matches {
 		if len(match) > 1 {
 			modifiers := strings.ToLower(match[1])
@@ -255,7 +255,7 @@ func (p *Parser) processDeckSetImages(content string, slide *Slide) string {
 			}
 		}
 	}
-	
+
 	// Auto-set layout based on image positions
 	if slide.Metadata.Layout == "" {
 		if hasLeft && hasRight {
@@ -266,7 +266,7 @@ func (p *Parser) processDeckSetImages(content string, slide *Slide) string {
 			slide.Metadata.Layout = "50-50"
 		}
 	}
-	
+
 	// Convert DeckSet image modifiers to HTML classes or remove them
 	// For now, we'll strip the modifiers and keep the standard markdown syntax
 	// The actual rendering will be handled by the layout
@@ -280,7 +280,7 @@ func (p *Parser) processDeckSetImages(content string, slide *Slide) string {
 		}
 		return match
 	})
-	
+
 	return content
 }
 

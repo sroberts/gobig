@@ -7,7 +7,7 @@ type SlideMetadata struct {
 	BodyStyle  string `yaml:"body-style"`   // Custom body styling for this slide
 	BodyClass  string `yaml:"body-class"`   // Custom body class for this slide
 	TimeToNext int    `yaml:"time-to-next"` // Auto-advance time in seconds
-	
+
 	// DeckSet per-slide directives
 	Autoscale       *bool  `yaml:"autoscale"`        // Scale text to fit slide
 	BuildLists      *bool  `yaml:"build-lists"`      // Reveal list items one by one
@@ -22,7 +22,7 @@ type SlideMetadata struct {
 type PresentationMetadata struct {
 	Title      string `yaml:"title"`        // Presentation title
 	TimeToNext int    `yaml:"time-to-next"` // Default auto-advance time for all slides
-	
+
 	// DeckSet global configuration
 	Autoscale       bool   `yaml:"autoscale"`        // Scale text to fit slides
 	BuildLists      bool   `yaml:"build-lists"`      // Reveal list items one by one

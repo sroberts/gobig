@@ -101,7 +101,7 @@ func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, theme, slides strin
 // aspectRatioScript generates the aspect ratio configuration script
 func aspectRatioScript(ratio string) string {
 	script := ""
-	
+
 	if ratio != "" && ratio != "1.6" {
 		if ratio == "false" || ratio == "none" {
 			script += "<script>BIG_ASPECT_RATIO = false;</script>"
@@ -109,7 +109,7 @@ func aspectRatioScript(ratio string) string {
 			script += fmt.Sprintf("<script>BIG_ASPECT_RATIO = %s;</script>", ratio)
 		}
 	}
-	
+
 	// Add DeckSet features script
 	script += `
 <script>
@@ -124,6 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>`
-	
+
 	return script
 }
