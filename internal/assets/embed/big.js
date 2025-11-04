@@ -477,8 +477,8 @@ addEventListener("load", () => {
     wrapper.appendChild(iframe);
     targetElement.appendChild(wrapper);
 
-    const styleEl = document.querySelector("style");
-    const styles = styleEl ? styleEl.textContent : "";
+    const styleEls = document.querySelectorAll("style");
+    const styles = Array.from(styleEls).map(el => el.textContent).join("\n");
     iframe.contentDocument.write(`
       <html>
       <head>
