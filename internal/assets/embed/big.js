@@ -1,9 +1,36 @@
 let ASPECT_RATIO = window.BIG_ASPECT_RATIO === undefined ? 1.6 : window.BIG_ASPECT_RATIO;
-// Delay in milliseconds to allow DOM layout to complete before scaling notes
-const NOTES_SCALING_DELAY = 50;
 
 function parseHash() {
   return parseInt(window.location.hash.substring(1), 10);
+}
+
+/**
+ * Calculates optimal font size for an element to fit within specified dimensions
+ * @param {HTMLElement} element - The element to size
+ * @param {number} startFontSize - Initial font size to start from
+ * @param {number} maxWidth - Maximum width constraint
+ * @param {number} maxHeight - Maximum height constraint
+ * @param {Array<number>} steps - Array of step sizes for iterative refinement (e.g., [100, 50, 10, 2])
+ * @param {Function} fitsCheck - Custom function to check if element fits (element, maxWidth, maxHeight) => boolean
+ * @returns {number} Optimal font size
+ */
+function calculateOptimalFontSize(element, startFontSize, maxWidth, maxHeight, steps, fitsCheck) {
+  let fontSize = startFontSize;
+  
+  for (let step of steps) {
+    // Decrease font size until it fits or we go below zero
+    while (fontSize > 0) {
+      element.style.fontSize = `${fontSize}px`;
+      if (fitsCheck(element, maxWidth, maxHeight)) {
+        break;
+      }
+      fontSize -= step;
+    }
+    // Add back one step since we went one step too far
+    fontSize += step;
+  }
+  
+  return Math.max(0, fontSize);
 }
 
 function emptyNode(node) {
@@ -81,25 +108,26 @@ addEventListener("load", () => {
 
   function resizeTo(sc, width, height) {
     let slideDiv = sc.firstChild,
-      padding = Math.min(width * 0.04),
-      fontSize = height;
+      padding = Math.min(width * 0.04);
     sc.style.width = `${width}px`;
     sc.style.height = `${height}px`;
     slideDiv.style.padding = `${padding}px`;
     if (getComputedStyle(slideDiv).display === "grid") slideDiv.style.height = `${height - padding * 2}px`;
-    for (let step of [100, 50, 10, 2]) {
-      for (; fontSize > 0; fontSize -= step) {
-        slideDiv.style.fontSize = `${fontSize}px`;
-        if (
-          slideDiv.scrollWidth <= width &&
-          slideDiv.offsetHeight <= height &&
-          Array.from(slideDiv.querySelectorAll("div")).every(elem => elem.scrollWidth <= elem.clientWidth && elem.scrollHeight <= elem.clientHeight)
-        ) {
-          break;
-        }
-      }
-      fontSize += step;
-    }
+    
+    const fontSize = calculateOptimalFontSize(
+      slideDiv,
+      height,
+      width,
+      height,
+      [100, 50, 10, 2],
+      (elem, maxWidth, maxHeight) =>
+        elem.scrollWidth <= maxWidth &&
+        elem.offsetHeight <= maxHeight &&
+        Array.from(elem.querySelectorAll("div")).every(child =>
+          child.scrollWidth <= child.clientWidth && child.scrollHeight <= child.clientHeight
+        )
+    );
+    slideDiv.style.fontSize = `${fontSize}px`;
   }
 
   function openPresenterView() {
@@ -356,8 +384,8 @@ addEventListener("load", () => {
         notesWrapper.classList.remove("scrollable");
         notesWrapper.classList.add("scale-to-fit");
         notesToggleBtn.textContent = "Scrollable";
-        // Re-scale the notes
-        setTimeout(scaleNotesToFit, NOTES_SCALING_DELAY);
+        // Re-scale the notes after DOM layout completes
+        requestAnimationFrame(scaleNotesToFit);
       }
     });
 
@@ -417,36 +445,27 @@ addEventListener("load", () => {
     if (!notesWrapper || !notesWrapper.classList.contains("scale-to-fit")) return;
     if (!notesContent || notesContent.classList.contains("no-notes")) return;
 
-    // Reset font size to default
-    notesContent.style.fontSize = "16px";
-
     // Get container dimensions
     const wrapperHeight = notesWrapper.clientHeight;
     const wrapperWidth = notesWrapper.clientWidth;
 
-    // Calculate if content fits
-    let fontSize = 16;
     const minFontSize = 8;
     const maxFontSize = 20;
 
-    // Try to find optimal font size
-    for (let step of [2, 1, 0.5]) {
-      while (fontSize >= minFontSize) {
-        notesContent.style.fontSize = `${fontSize}px`;
+    // Calculate optimal font size using utility function
+    const fontSize = calculateOptimalFontSize(
+      notesContent,
+      maxFontSize,
+      wrapperWidth,
+      wrapperHeight,
+      [2, 1, 0.5],
+      (elem, maxWidth, maxHeight) =>
+        elem.scrollHeight <= maxHeight && elem.scrollWidth <= maxWidth
+    );
 
-        if (notesContent.scrollHeight <= wrapperHeight &&
-            notesContent.scrollWidth <= wrapperWidth) {
-          break;
-        }
-        fontSize -= step;
-      }
-      // Always add back the last step after the loop, since fontSize was reduced one extra time
-      fontSize += step;
-    }
-
-    // Clamp to min/max
-    fontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize));
-    notesContent.style.fontSize = `${fontSize}px`;
+    // Clamp to min/max and apply
+    const clampedFontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize));
+    notesContent.style.fontSize = `${clampedFontSize}px`;
   }
 
   function createSlidePreview(slideContainer, targetElement, viewportWidth, viewportHeight, scale) {
@@ -503,29 +522,28 @@ addEventListener("load", () => {
     if (sc) {
       const slideDiv = sc.firstChild;
       let padding = Math.min(viewportWidth * 0.04);
-      let fontSize = viewportHeight;
       sc.style.width = `${viewportWidth}px`;
       sc.style.height = `${viewportHeight}px`;
       slideDiv.style.padding = `${padding}px`;
       if (iframe.contentWindow.getComputedStyle(slideDiv).display === "grid") {
         slideDiv.style.height = `${viewportHeight - padding * 2}px`;
       }
-      // Calculate optimal font size
-      for (let step of [100, 50, 10, 2]) {
-        for (; fontSize > 0; fontSize -= step) {
-          slideDiv.style.fontSize = `${fontSize}px`;
-          if (
-            slideDiv.scrollWidth <= viewportWidth &&
-            slideDiv.offsetHeight <= viewportHeight &&
-            Array.from(slideDiv.querySelectorAll("div")).every(elem =>
-              elem.scrollWidth <= elem.clientWidth && elem.scrollHeight <= elem.clientHeight
-            )
-          ) {
-            break;
-          }
-        }
-        fontSize += step;
-      }
+      
+      // Calculate optimal font size using utility function
+      const fontSize = calculateOptimalFontSize(
+        slideDiv,
+        viewportHeight,
+        viewportWidth,
+        viewportHeight,
+        [100, 50, 10, 2],
+        (elem, maxWidth, maxHeight) =>
+          elem.scrollWidth <= maxWidth &&
+          elem.offsetHeight <= maxHeight &&
+          Array.from(elem.querySelectorAll("div")).every(child =>
+            child.scrollWidth <= child.clientWidth && child.scrollHeight <= child.clientHeight
+          )
+      );
+      slideDiv.style.fontSize = `${fontSize}px`;
     }
   }
 
@@ -611,8 +629,8 @@ addEventListener("load", () => {
 
     updatePresenterTimers();
 
-    // Scale notes to fit if in scale-to-fit mode
-    setTimeout(() => scaleNotesToFit(), NOTES_SCALING_DELAY);
+    // Scale notes to fit if in scale-to-fit mode (wait for DOM layout to complete)
+    requestAnimationFrame(() => scaleNotesToFit());
   }
 
   function onPrint() {
