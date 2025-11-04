@@ -473,7 +473,7 @@ addEventListener("load", () => {
     iframe.style.top = "0";
     iframe.style.left = "0";
 
-    iframe.setAttribute("sandbox", "allow-same-origin");
+    iframe.setAttribute("sandbox", "allow-same-origin allow-scripts");
     wrapper.appendChild(iframe);
     targetElement.appendChild(wrapper);
 
