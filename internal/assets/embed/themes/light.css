@@ -7,3 +7,30 @@ a {
   color: #0889d1;
   text-decoration-skip: ink;
 }
+
+
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon,
+.mermaid .node path {
+  fill: #34383e !important;
+  stroke: #34383e !important;
+}
+
+.mermaid .node .label text,
+.mermaid .nodeLabel,
+.mermaid .edgeLabel {
+  fill: #f5f5f5 !important;
+  color: #f5f5f5 !important;
+}
+
+.mermaid .edgePath .path,
+.mermaid .flowchart-link {
+  stroke: #34383e !important;
+}
+
+.mermaid .marker {
+  fill: #34383e !important;
+  stroke: #34383e !important;
+}

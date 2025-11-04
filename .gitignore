@@ -30,3 +30,13 @@ go.work
 # OS
 .DS_Store
 Thumbs.db
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Playwright
+playwright-report/
+test-results/
+tests/screenshots/
+.playwright-mcp/
