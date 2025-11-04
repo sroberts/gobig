@@ -494,44 +494,38 @@ addEventListener("load", () => {
         </style>
       </head>
       <body class="${document.body.className}">
-        ${clone.outerHTML}
+        ${clone.innerHTML}
       </body>
       </html>
     `);
     iframe.contentDocument.close();
 
     // Apply proper sizing using the same resizeTo logic as main presentation
-    const sc = iframe.contentDocument.querySelector('.slide-container');
-    if (sc) {
-      // Ensure slide-container is visible (it may have display:none from main view)
-      sc.style.display = 'flex';
-
-      const slideDiv = sc.firstChild;
-      if (slideDiv) {
-        let padding = Math.min(viewportWidth * 0.04);
-        let fontSize = viewportHeight;
-        sc.style.width = `${viewportWidth}px`;
-        sc.style.height = `${viewportHeight}px`;
-        slideDiv.style.padding = `${padding}px`;
-        if (iframe.contentWindow.getComputedStyle(slideDiv).display === "grid") {
-          slideDiv.style.height = `${viewportHeight - padding * 2}px`;
-        }
-        // Calculate optimal font size
-        for (let step of [100, 50, 10, 2]) {
-          for (; fontSize > 0; fontSize -= step) {
-            slideDiv.style.fontSize = `${fontSize}px`;
-            if (
-              slideDiv.scrollWidth <= viewportWidth &&
-              slideDiv.offsetHeight <= viewportHeight &&
-              Array.from(slideDiv.querySelectorAll("div")).every(elem =>
-                elem.scrollWidth <= elem.clientWidth && elem.scrollHeight <= elem.clientHeight
-              )
-            ) {
-              break;
-            }
+    const slideDiv = iframe.contentDocument.body.firstElementChild;
+    if (slideDiv) {
+      let padding = Math.min(viewportWidth * 0.04);
+      let fontSize = viewportHeight;
+      slideDiv.style.width = `${viewportWidth}px`;
+      slideDiv.style.height = `${viewportHeight}px`;
+      slideDiv.style.padding = `${padding}px`;
+      if (iframe.contentWindow.getComputedStyle(slideDiv).display === "grid") {
+        slideDiv.style.height = `${viewportHeight - padding * 2}px`;
+      }
+      // Calculate optimal font size
+      for (let step of [100, 50, 10, 2]) {
+        for (; fontSize > 0; fontSize -= step) {
+          slideDiv.style.fontSize = `${fontSize}px`;
+          if (
+            slideDiv.scrollWidth <= viewportWidth &&
+            slideDiv.offsetHeight <= viewportHeight &&
+            Array.from(slideDiv.querySelectorAll("div")).every(elem =>
+              elem.scrollWidth <= elem.clientWidth && elem.scrollHeight <= elem.clientHeight
+            )
+          ) {
+            break;
           }
-          fontSize += step;
         }
+        fontSize += step;
       }
     }
   }
