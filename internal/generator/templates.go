@@ -34,6 +34,25 @@ const htmlTemplate = `<!DOCTYPE html>
     }
   </style>
   <style>
+    /* DeckSet [fit] header support - scales text to fill slide */
+    .fit {
+      display: block;
+      font-size: 10vw;
+      line-height: 1.2;
+      font-weight: bold;
+    }
+    
+    /* Background color support for slides */
+    div[data-background-color] {
+      background-color: var(--bg-color) !important;
+    }
+    
+    /* Autoscale support */
+    div[data-autoscale="true"] {
+      font-size: 0.9em;
+    }
+  </style>
+  <style>
     /* Force dark theme colors for Mermaid diagrams with proper contrast */
     .dark .mermaid rect,
     .light .mermaid rect:not([fill]),
@@ -84,13 +103,30 @@ func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, theme, slides strin
 
 // aspectRatioScript generates the aspect ratio configuration script
 func aspectRatioScript(ratio string) string {
-	if ratio == "" || ratio == "1.6" {
-		return "" // Default is 1.6, no need to override
+	script := ""
+	
+	if ratio != "" && ratio != "1.6" {
+		if ratio == "false" || ratio == "none" {
+			script += "<script>BIG_ASPECT_RATIO = false;</script>"
+		} else {
+			script += fmt.Sprintf("<script>BIG_ASPECT_RATIO = %s;</script>", ratio)
+		}
 	}
-
-	if ratio == "false" || ratio == "none" {
-		return "<script>BIG_ASPECT_RATIO = false;</script>"
-	}
-
-	return fmt.Sprintf("<script>BIG_ASPECT_RATIO = %s;</script>", ratio)
+	
+	// Add DeckSet features script
+	script += `
+<script>
+// Handle DeckSet background colors and other data attributes
+document.addEventListener('DOMContentLoaded', function() {
+  // Process background colors
+  document.querySelectorAll('div[data-background-color]').forEach(function(slide) {
+    var color = slide.getAttribute('data-background-color');
+    if (color) {
+      slide.style.backgroundColor = color;
+    }
+  });
+});
+</script>`
+	
+	return script
 }

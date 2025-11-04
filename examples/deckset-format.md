@@ -5,10 +5,18 @@ footer: DeckSet Format Demo
 ---
 
 # [fit] DeckSet Format
-## Testing gobig with DeckSet syntax
 
 ^ This is a speaker note using DeckSet syntax
 ^ It uses the caret prefix
+
+---
+
+## Testing gobig with DeckSet syntax
+
+- DeckSet-style directives
+- Speaker notes with ^
+- Image modifiers
+- And more!
 
 ---
 

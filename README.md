@@ -5,15 +5,16 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/sroberts/gobig)](https://go.dev/)
 [![License](https://img.shields.io/github/license/sroberts/gobig)](LICENSE)
 
-A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.
+A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes. Now with **DeckSet format compatibility**!
 
 ## Features
 
 - 📝 **Simple Markdown**: Write presentations in familiar markdown syntax
+- 🎯 **DeckSet Format**: Compatible with DeckSet markdown syntax
 - 🎨 **Three Themes**: Dark, light, and white themes included
 - 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
 - 📊 **Mermaid Diagrams**: Create flowcharts, sequence diagrams, and more
-- 🗣️ **Speaker Notes**: Hidden notes in HTML comments
+- 🗣️ **Speaker Notes**: Support for both HTML comments and DeckSet `^` syntax
 - 🎤 **Presenter View**: Dedicated window with slide previews, notes, and timers
 - 📦 **Single Binary**: No dependencies, just one executable
 - 🔒 **Self-Contained**: Generates single HTML file with embedded assets
@@ -150,7 +151,7 @@ More content
 
 ### Speaker Notes
 
-Add speaker notes using HTML comments:
+**gobig style (HTML comments):**
 
 ```markdown
 # My Slide
@@ -163,6 +164,76 @@ It will appear in the browser console when presenting.
 Multi-line notes are supported!
 -->
 ```
+
+**DeckSet style (caret prefix):**
+
+```markdown
+# My Slide
+
+Visible content
+
+^ This is a DeckSet-style speaker note
+^ You can have multiple lines
+^ Each line starts with a caret
+```
+
+### DeckSet Format Support
+
+gobig now supports [DeckSet](https://www.deckset.com/) markdown syntax! This means you can use DeckSet presentations directly with gobig.
+
+**Global Configuration (at the top of file):**
+
+```markdown
+autoscale: true
+slidenumbers: true
+footer: My Footer Text
+
+---
+
+# First Slide
+```
+
+**Per-Slide Directives:**
+
+```markdown
+[.autoscale: true]
+[.background-color: #1a1a2e]
+
+# Slide with Directives
+
+Content here
+```
+
+**[fit] Headers:**
+
+```markdown
+# [fit] Big Text
+
+This header will scale to fill the slide
+```
+
+**Image Modifiers:**
+
+```markdown
+![left](image.jpg)
+
+# Content on Right
+
+Text appears next to the image
+
+---
+
+![right](image.jpg)
+
+# Content on Left
+```
+
+Supported DeckSet features:
+- Global configuration (autoscale, slidenumbers, footer, theme, etc.)
+- Per-slide directives (`[.autoscale: true]`, `[.background-color: #fff]`)
+- Speaker notes with `^` prefix
+- `[fit]` headers for scaling text
+- Image position modifiers (left, right, fit, etc.)
 
 ### Slide Metadata
 
