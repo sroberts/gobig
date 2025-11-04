@@ -203,37 +203,72 @@ addEventListener("load", () => {
       overflow: hidden;
       position: relative;
       background: #fff;
-      min-height: 300px;
+      aspect-ratio: ${ASPECT_RATIO};
     }
     .slide-preview iframe {
       border: none;
-      transform-origin: top left;
-      position: absolute;
-      top: 0;
-      left: 0;
     }
     .notes-section {
       grid-column: 1 / -1;
       background: #2a2a2a;
       border-radius: 8px;
       padding: 20px;
-      max-height: 200px;
-      overflow-y: auto;
       border: 2px solid #444;
+      display: flex;
+      flex-direction: column;
+      min-height: 150px;
+      max-height: 200px;
+    }
+    .notes-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
     .notes-header {
       font-weight: 600;
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 12px;
       color: #999;
+    }
+    .notes-toggle-btn {
+      background: #444;
+      border: 1px solid #666;
+      color: #fff;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background 0.2s;
+    }
+    .notes-toggle-btn:hover {
+      background: #555;
+    }
+    .notes-content-wrapper {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .notes-content-wrapper.scrollable {
+      overflow-y: auto;
+      align-items: flex-start;
     }
     .notes-content {
       font-size: 16px;
       line-height: 1.6;
       white-space: pre-wrap;
       color: #fff;
+      width: 100%;
+    }
+    .notes-content-wrapper.scale-to-fit .notes-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
     }
     .no-notes {
       color: #666;
@@ -266,8 +301,13 @@ addEventListener("load", () => {
         <div class="slide-preview-content" id="next-slide"></div>
       </div>
       <div class="notes-section">
-        <div class="notes-header">Speaker Notes</div>
-        <div class="notes-content" id="notes"></div>
+        <div class="notes-header-container">
+          <div class="notes-header">Speaker Notes</div>
+          <button class="notes-toggle-btn" id="notes-toggle">Scrollable</button>
+        </div>
+        <div class="notes-content-wrapper scale-to-fit" id="notes-wrapper">
+          <div class="notes-content" id="notes"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -293,9 +333,30 @@ addEventListener("load", () => {
 
     // Add click navigation to presenter view
     presenterWindow.document.addEventListener("click", e => {
-      // Don't navigate if clicking on links or interactive elements
-      if (e.target.tagName === "A" || e.target.tagName === "IFRAME") return;
+      // Don't navigate if clicking on links, interactive elements, or the notes toggle button
+      if (e.target.tagName === "A" || e.target.tagName === "IFRAME" || e.target.tagName === "BUTTON") return;
       forward();
+    });
+
+    // Add notes toggle functionality
+    const notesToggleBtn = presenterWindow.document.getElementById("notes-toggle");
+    const notesWrapper = presenterWindow.document.getElementById("notes-wrapper");
+    let notesMode = "scale-to-fit"; // Start in scale-to-fit mode
+
+    notesToggleBtn.addEventListener("click", () => {
+      if (notesMode === "scale-to-fit") {
+        notesMode = "scrollable";
+        notesWrapper.classList.remove("scale-to-fit");
+        notesWrapper.classList.add("scrollable");
+        notesToggleBtn.textContent = "Scale to Fit";
+      } else {
+        notesMode = "scale-to-fit";
+        notesWrapper.classList.remove("scrollable");
+        notesWrapper.classList.add("scale-to-fit");
+        notesToggleBtn.textContent = "Scrollable";
+        // Re-scale the notes
+        scaleNotesToFit();
+      }
     });
 
     // Clear any existing intervals
@@ -319,9 +380,9 @@ addEventListener("load", () => {
 
   function updatePresenterTimers() {
     if (!presenterWindow || presenterWindow.closed) return;
-    
+
     const doc = presenterWindow.document;
-    
+
     // Update elapsed time
     if (presenterStartTime) {
       const elapsed = Math.floor((Date.now() - presenterStartTime) / 1000);
@@ -332,7 +393,7 @@ addEventListener("load", () => {
         elapsedEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
       }
     }
-    
+
     // Update current time
     const now = new Date();
     const hours = now.getHours();
@@ -343,100 +404,185 @@ addEventListener("load", () => {
     }
   }
 
+  function scaleNotesToFit() {
+    if (!presenterWindow || presenterWindow.closed) return;
+
+    const doc = presenterWindow.document;
+    const notesWrapper = doc.getElementById("notes-wrapper");
+    const notesContent = doc.getElementById("notes");
+
+    // Only scale if in scale-to-fit mode
+    if (!notesWrapper || !notesWrapper.classList.contains("scale-to-fit")) return;
+    if (!notesContent || notesContent.classList.contains("no-notes")) return;
+
+    // Reset font size to default
+    notesContent.style.fontSize = "16px";
+
+    // Get container dimensions
+    const wrapperHeight = notesWrapper.clientHeight;
+    const wrapperWidth = notesWrapper.clientWidth;
+
+    // Calculate if content fits
+    let fontSize = 16;
+    const minFontSize = 8;
+    const maxFontSize = 20;
+
+    // Try to find optimal font size
+    for (let step of [2, 1, 0.5]) {
+      while (fontSize > minFontSize) {
+        notesContent.style.fontSize = `${fontSize}px`;
+
+        if (notesContent.scrollHeight <= wrapperHeight &&
+            notesContent.scrollWidth <= wrapperWidth) {
+          break;
+        }
+        fontSize -= step;
+      }
+      fontSize += step;
+    }
+
+    // Clamp to min/max
+    fontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize));
+    notesContent.style.fontSize = `${fontSize}px`;
+  }
+
+  function createSlidePreview(slideContainer, targetElement, viewportWidth, viewportHeight, scale) {
+    const clone = slideContainer.cloneNode(true);
+
+    // Create a wrapper div to handle the scaled iframe
+    const wrapper = targetElement.ownerDocument.createElement("div");
+    wrapper.style.width = `${Math.floor(viewportWidth * scale)}px`;
+    wrapper.style.height = `${Math.floor(viewportHeight * scale)}px`;
+    wrapper.style.overflow = "hidden";
+    wrapper.style.position = "relative";
+
+    const iframe = targetElement.ownerDocument.createElement("iframe");
+
+    // Set iframe dimensions and scaling
+    iframe.style.width = `${viewportWidth}px`;
+    iframe.style.height = `${viewportHeight}px`;
+    iframe.style.transform = `scale(${scale})`;
+    iframe.style.transformOrigin = "top left";
+    iframe.style.border = "none";
+    iframe.style.position = "absolute";
+    iframe.style.top = "0";
+    iframe.style.left = "0";
+
+    iframe.setAttribute("sandbox", "allow-same-origin");
+    wrapper.appendChild(iframe);
+    targetElement.appendChild(wrapper);
+
+    const styleEl = document.querySelector("style");
+    const styles = styleEl ? styleEl.textContent : "";
+    iframe.contentDocument.write(`
+      <html>
+      <head>
+        <style>
+          ${styles}
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+          }
+        </style>
+      </head>
+      <body class="${document.body.className}">
+        ${clone.outerHTML}
+      </body>
+      </html>
+    `);
+    iframe.contentDocument.close();
+
+    // Apply proper sizing using the same resizeTo logic as main presentation
+    const sc = iframe.contentDocument.querySelector('.slide-container');
+    if (sc) {
+      // Ensure slide-container is visible (it may have display:none from main view)
+      sc.style.display = 'flex';
+
+      const slideDiv = sc.firstChild;
+      if (slideDiv) {
+        let padding = Math.min(viewportWidth * 0.04);
+        let fontSize = viewportHeight;
+        sc.style.width = `${viewportWidth}px`;
+        sc.style.height = `${viewportHeight}px`;
+        slideDiv.style.padding = `${padding}px`;
+        if (iframe.contentWindow.getComputedStyle(slideDiv).display === "grid") {
+          slideDiv.style.height = `${viewportHeight - padding * 2}px`;
+        }
+        // Calculate optimal font size
+        for (let step of [100, 50, 10, 2]) {
+          for (; fontSize > 0; fontSize -= step) {
+            slideDiv.style.fontSize = `${fontSize}px`;
+            if (
+              slideDiv.scrollWidth <= viewportWidth &&
+              slideDiv.offsetHeight <= viewportHeight &&
+              Array.from(slideDiv.querySelectorAll("div")).every(elem =>
+                elem.scrollWidth <= elem.clientWidth && elem.scrollHeight <= elem.clientHeight
+              )
+            ) {
+              break;
+            }
+          }
+          fontSize += step;
+        }
+      }
+    }
+  }
+
   function updatePresenterView() {
     if (!presenterWindow || presenterWindow.closed) return;
-    
+
     const doc = presenterWindow.document;
     const currentIdx = big.current;
     const nextIdx = currentIdx + 1;
-    
+
     // Update slide number
     const slideNumberEl = doc.getElementById("slide-number");
     if (slideNumberEl) {
       slideNumberEl.textContent = `Slide ${currentIdx + 1} / ${big.length}`;
     }
-    
+
+    // Use main window's viewport dimensions for proper scaling
+    const mainViewportWidth = document.documentElement.clientWidth;
+    const mainViewportHeight = document.documentElement.clientHeight;
+
     // Update current slide preview
     const currentSlideEl = doc.getElementById("current-slide");
     if (currentSlideEl) {
       currentSlideEl.innerHTML = "";
       if (slideDivs[currentIdx]) {
-        const clone = slideDivs[currentIdx].cloneNode(true);
-        const iframe = doc.createElement("iframe");
+        // Get actual container dimensions for scaling
+        const containerWidth = currentSlideEl.clientWidth;
+        const containerHeight = currentSlideEl.clientHeight;
 
-        // Get actual viewport dimensions
-        const viewportWidth = document.documentElement.clientWidth;
-        const viewportHeight = document.documentElement.clientHeight;
+        // Calculate scale to fit main viewport in container
+        const scale = Math.min(
+          containerWidth / mainViewportWidth,
+          containerHeight / mainViewportHeight
+        );
 
-        // Calculate scale to fit preview (preview container is roughly 45% of presenter window width)
-        const previewWidth = 450; // Target preview width
-        const previewHeight = 300; // Target preview height
-        const scale = Math.min(previewWidth / viewportWidth, previewHeight / viewportHeight);
-
-        iframe.style.width = `${viewportWidth}px`;
-        iframe.style.height = `${viewportHeight}px`;
-        iframe.style.transform = `scale(${scale})`;
-        iframe.style.transformOrigin = "top left";
-        iframe.setAttribute("sandbox", "allow-same-origin");
-        currentSlideEl.appendChild(iframe);
-        const styleEl = document.querySelector("style");
-        const styles = styleEl ? styleEl.textContent : "";
-        iframe.contentDocument.write(`
-          <html>
-          <head>
-            <style>
-              ${styles}
-              body { margin: 0; padding: 0; }
-            </style>
-          </head>
-          <body class="${document.body.className}">
-            ${clone.innerHTML}
-          </body>
-          </html>
-        `);
-        iframe.contentDocument.close();
+        createSlidePreview(slideDivs[currentIdx], currentSlideEl, mainViewportWidth, mainViewportHeight, scale);
       }
     }
-    
+
     // Update next slide preview
     const nextSlideEl = doc.getElementById("next-slide");
     if (nextSlideEl) {
       nextSlideEl.innerHTML = "";
       if (nextIdx < big.length && slideDivs[nextIdx]) {
-        const clone = slideDivs[nextIdx].cloneNode(true);
-        const iframe = doc.createElement("iframe");
+        // Get actual container dimensions for scaling
+        const containerWidth = nextSlideEl.clientWidth;
+        const containerHeight = nextSlideEl.clientHeight;
 
-        // Get actual viewport dimensions
-        const viewportWidth = document.documentElement.clientWidth;
-        const viewportHeight = document.documentElement.clientHeight;
+        // Calculate scale to fit main viewport in container
+        const scale = Math.min(
+          containerWidth / mainViewportWidth,
+          containerHeight / mainViewportHeight
+        );
 
-        // Calculate scale to fit preview
-        const previewWidth = 450;
-        const previewHeight = 300;
-        const scale = Math.min(previewWidth / viewportWidth, previewHeight / viewportHeight);
-
-        iframe.style.width = `${viewportWidth}px`;
-        iframe.style.height = `${viewportHeight}px`;
-        iframe.style.transform = `scale(${scale})`;
-        iframe.style.transformOrigin = "top left";
-        iframe.setAttribute("sandbox", "allow-same-origin");
-        nextSlideEl.appendChild(iframe);
-        const styleEl = document.querySelector("style");
-        const styles = styleEl ? styleEl.textContent : "";
-        iframe.contentDocument.write(`
-          <html>
-          <head>
-            <style>
-              ${styles}
-              body { margin: 0; padding: 0; }
-            </style>
-          </head>
-          <body class="${document.body.className}">
-            ${clone.innerHTML}
-          </body>
-          </html>
-        `);
-        iframe.contentDocument.close();
+        createSlidePreview(slideDivs[nextIdx], nextSlideEl, mainViewportWidth, mainViewportHeight, scale);
       } else {
         nextSlideEl.innerHTML = '<div style="color:#666;padding:20px;text-align:center;font-size:18px;">End of presentation</div>';
       }
@@ -464,8 +610,11 @@ addEventListener("load", () => {
         notesEl.className = "notes-content no-notes";
       }
     }
-    
+
     updatePresenterTimers();
+
+    // Scale notes to fit if in scale-to-fit mode
+    setTimeout(() => scaleNotesToFit(), 50);
   }
 
   function onPrint() {
