@@ -1,16 +1,34 @@
-.PHONY: build build-all install clean test help
+.PHONY: build build-all install clean test help update-big
 
 # Build variables
 BINARY_NAME=gobig
 VERSION=1.0.0
 BUILD_DIR=bin
 MAIN_PATH=./cmd/gobig
+BIG_REPO=https://github.com/sroberts/big
+BIG_ASSETS_DIR=internal/assets/embed
 
 # Build flags
 LDFLAGS=-ldflags "-X main.version=$(VERSION) -s -w"
 
 # Default target
 all: build
+
+# Update big.js assets from sroberts/big repository
+update-big:
+	@echo "Updating big.js assets from $(BIG_REPO)..."
+	@mkdir -p /tmp/big-update
+	@cd /tmp/big-update && \
+		git clone --depth 1 $(BIG_REPO) . && \
+		cp big.js $(CURDIR)/$(BIG_ASSETS_DIR)/ && \
+		cp big.css $(CURDIR)/$(BIG_ASSETS_DIR)/ && \
+		cp themes/*.css $(CURDIR)/$(BIG_ASSETS_DIR)/themes/
+	@rm -rf /tmp/big-update
+	@echo "Successfully updated big.js assets to latest version"
+	@echo "Files updated:"
+	@echo "  - $(BIG_ASSETS_DIR)/big.js"
+	@echo "  - $(BIG_ASSETS_DIR)/big.css"
+	@echo "  - $(BIG_ASSETS_DIR)/themes/*.css"
 
 # Build for current platform
 build:
@@ -64,6 +82,7 @@ help:
 	@echo "Available targets:"
 	@echo "  build      - Build for current platform"
 	@echo "  build-all  - Cross-compile for all platforms (Linux, macOS, Windows)"
+	@echo "  update-big - Update big.js assets from $(BIG_REPO) to latest version"
 	@echo "  install    - Install to \$$GOPATH/bin"
 	@echo "  test       - Run tests"
 	@echo "  clean      - Clean build artifacts"
