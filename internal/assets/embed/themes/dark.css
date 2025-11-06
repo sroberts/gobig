@@ -15,30 +15,3 @@ a {
 a:hover {
   background: #4e5b6f;
 }
-
-
-.mermaid .node rect,
-.mermaid .node circle,
-.mermaid .node ellipse,
-.mermaid .node polygon,
-.mermaid .node path {
-  fill: #fff !important;
-  stroke: #fff !important;
-}
-
-.mermaid .node .label text,
-.mermaid .nodeLabel,
-.mermaid .edgeLabel {
-  fill: #272c32 !important;
-  color: #272c32 !important;
-}
-
-.mermaid .edgePath .path,
-.mermaid .flowchart-link {
-  stroke: #fff !important;
-}
-
-.mermaid .marker {
-  fill: #fff !important;
-  stroke: #fff !important;
-}

@@ -8,30 +8,3 @@ a {
   color: #0889d1;
   text-decoration-skip: ink;
 }
-
-
-.mermaid .node rect,
-.mermaid .node circle,
-.mermaid .node ellipse,
-.mermaid .node polygon,
-.mermaid .node path {
-  fill: #000 !important;
-  stroke: #000 !important;
-}
-
-.mermaid .node .label text,
-.mermaid .nodeLabel,
-.mermaid .edgeLabel {
-  fill: #fff !important;
-  color: #fff !important;
-}
-
-.mermaid .edgePath .path,
-.mermaid .flowchart-link {
-  stroke: #000 !important;
-}
-
-.mermaid .marker {
-  fill: #000 !important;
-  stroke: #000 !important;
-}
