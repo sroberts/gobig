@@ -26,8 +26,6 @@ func GetBigCSS() (string, error) {
 	return string(content), nil
 }
 
-
-
 // GetTheme returns the theme CSS content for the specified theme
 // Valid themes: "dark", "light", "white"
 func GetTheme(theme string) (string, error) {

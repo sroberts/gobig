@@ -346,5 +346,3 @@ func escapeAttr(s string) string {
 	s = strings.ReplaceAll(s, "\"", "&quot;")
 	return s
 }
-
-

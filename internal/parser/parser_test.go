@@ -183,7 +183,7 @@ It should be extracted.
 
 func TestSlideDetectType(t *testing.T) {
 	slide := &Slide{}
-	
+
 	// Basic test - should return SlideTypeContent as default
 	slideType := slide.DetectType("<h1>Test</h1>")
 	if slideType != SlideTypeContent {
