@@ -5,7 +5,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/sroberts/gobig)](https://go.dev/)
 [![License](https://img.shields.io/github/license/sroberts/gobig)](LICENSE)
 
-A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.
+A command-line tool to generate [big.js](https://github.com/sroberts/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.
 
 ## Features
 
@@ -115,10 +115,15 @@ gobig [options] <input.md>
 | `-theme <name>` | Theme: dark, light, or white | dark |
 | `-aspect-ratio <ratio>` | Aspect ratio (number or "false") | 1.6 |
 | `-title <title>` | Presentation title | From first slide |
+| `-serve` | Run as web server instead of generating file | false |
+| `-port <port>` | Port for web server (only with `-serve`) | 8080 |
+| `-watch` | Watch markdown file for changes (only with `-serve`) | false |
 | `-version` | Show version information | - |
 | `-help` | Show help message | - |
 
 ### Examples
+
+#### Generate HTML Files
 
 ```bash
 # Output to stdout
@@ -136,6 +141,26 @@ gobig -aspect-ratio 2 -title "My Amazing Talk" -o slides.html talk.md
 # Disable aspect ratio locking
 gobig -aspect-ratio false -o output.html slides.md
 ```
+
+#### Run as Web Server
+
+The `-serve` flag allows you to run gobig as a web server, serving your presentation directly without generating an HTML file. This is useful for presentations that get updated frequently or when you need a quick way to present without managing output files.
+
+```bash
+# Run server on default port (8080)
+gobig -serve presentation.md
+
+# Run server on custom port
+gobig -serve -port 3000 presentation.md
+
+# Watch for file changes and auto-regenerate
+gobig -serve -watch presentation.md
+
+# Combine with other options
+gobig -serve -watch -theme light -port 8080 presentation.md
+```
+
+Once the server is running, open your browser to `http://localhost:8080` (or your specified port) to view the presentation. With `-watch` enabled, the presentation will automatically regenerate when you save changes to your markdown file - just refresh your browser to see the updates.
 
 ## Markdown Syntax
 
@@ -489,7 +514,7 @@ gobig/
 
 ## Credits
 
-- [big.js](https://github.com/tmcw/big) by Tom MacWright - The presentation framework
+- [big.js](https://github.com/sroberts/big) by Tom MacWright - The presentation framework
 - [goldmark](https://github.com/yuin/goldmark) - Markdown parsing
 - Built with Go
 
