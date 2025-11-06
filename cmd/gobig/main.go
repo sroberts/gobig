@@ -199,13 +199,15 @@ func runServer(inputFile string) error {
 					continue
 				}
 
+				newModTime := fileInfo.ModTime()
+
 				mu.RLock()
 				currentLastMod := lastMod
 				mu.RUnlock()
 
-				if fileInfo.ModTime().After(currentLastMod) {
+				if newModTime.After(currentLastMod) {
 					mu.Lock()
-					lastMod = fileInfo.ModTime()
+					lastMod = newModTime
 					mu.Unlock()
 
 					log.Printf("File changed, regenerating...")
@@ -233,7 +235,7 @@ func runServer(inputFile string) error {
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write([]byte(html))
+		_, _ = w.Write([]byte(html))
 	})
 
 	// Start server
