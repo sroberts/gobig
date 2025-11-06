@@ -234,7 +234,9 @@ func runServer(inputFile string) error {
 			return
 		}
 
+		// Set headers to allow external resources (images, fonts, etc.)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:; font-src * data:; style-src * 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';")
 		_, _ = w.Write([]byte(html))
 	})
 
