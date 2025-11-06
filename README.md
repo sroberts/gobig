@@ -45,6 +45,19 @@ make build
 # Binary will be in bin/gobig
 ```
 
+### Updating big.js Assets
+
+To update to the latest version of big.js from the [sroberts/big](https://github.com/sroberts/big) repository:
+
+```bash
+make update-big
+```
+
+This will automatically fetch and update:
+- `big.js` - Core presentation framework
+- `big.css` - Base styles
+- Theme files (`dark.css`, `light.css`, `white.css`)
+
 ### Cross-Compilation
 
 Build for all platforms:
