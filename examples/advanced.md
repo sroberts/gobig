@@ -134,16 +134,6 @@ Perfect for **PechaKucha** or **Ignite** style presentations!
 
 ---
 
-```mermaid
-graph TD
-    A[Markdown] -->|gobig| B[HTML]
-    B --> C[Present!]
-```
-
-<!-- Mermaid diagrams are rendered to SVG at build time -->
-
----
-
 # Thank You!
 
 **gobig** - Markdown to big.js presentations
