@@ -291,6 +291,6 @@ Layouts:
   grid-3x2      3 columns, 2 rows
   Custom CSS    Use custom grid-template syntax
 
-For more information: https://github.com/tmcw/big
+For more information: https://github.com/sroberts/big
 `)
 }

@@ -5,7 +5,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/sroberts/gobig)](https://go.dev/)
 [![License](https://img.shields.io/github/license/sroberts/gobig)](LICENSE)
 
-A command-line tool to generate [big.js](https://github.com/tmcw/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.
+A command-line tool to generate [big.js](https://github.com/sroberts/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.
 
 ## Features
 
@@ -514,7 +514,7 @@ gobig/
 
 ## Credits
 
-- [big.js](https://github.com/tmcw/big) by Tom MacWright - The presentation framework
+- [big.js](https://github.com/sroberts/big) by Tom MacWright - The presentation framework
 - [goldmark](https://github.com/yuin/goldmark) - Markdown parsing
 - Built with Go
 
