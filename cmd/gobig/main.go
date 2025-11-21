@@ -3,10 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"time"
 
@@ -87,7 +90,7 @@ func main() {
 }
 
 // generateFromFile parses a markdown file and generates HTML
-func generateFromFile(inputFile string) (string, error) {
+func generateFromFile(inputFile string, skipBase64 bool) (string, error) {
 	// Parse markdown file
 	p := parser.NewParser()
 	if err := p.ParseFile(inputFile); err != nil {
@@ -109,6 +112,7 @@ func generateFromFile(inputFile string) (string, error) {
 		Title:                *title,
 		AspectRatio:          *aspectRatio,
 		BasePath:             basePath,
+		SkipBase64Images:     skipBase64,
 		PresentationMetadata: presentationMetadata,
 	}
 
@@ -122,7 +126,8 @@ func generateFromFile(inputFile string) (string, error) {
 }
 
 func run(inputFile string) error {
-	html, err := generateFromFile(inputFile)
+	// In file generation mode, use base64 encoding for single-file output
+	html, err := generateFromFile(inputFile, false)
 	if err != nil {
 		return err
 	}
@@ -142,7 +147,39 @@ func run(inputFile string) error {
 	return nil
 }
 
+// rewriteExternalImageURLs rewrites external image URLs to use our proxy
+// This avoids CORB (Cross-Origin Read Blocking) issues in serve mode
+func rewriteExternalImageURLs(html string) string {
+	// Match img tags with external URLs (http:// or https://)
+	imgRegex := regexp.MustCompile(`<img([^>]*)\ssrc="(https?://[^"]+)"([^>]*)>`)
+
+	return imgRegex.ReplaceAllStringFunc(html, func(match string) string {
+		// Extract the URL
+		submatches := imgRegex.FindStringSubmatch(match)
+		if len(submatches) < 3 {
+			return match
+		}
+
+		beforeSrc := submatches[1]
+		originalURL := submatches[2]
+		afterSrc := submatches[3]
+
+		// Encode the URL for use as a query parameter
+		encodedURL := url.QueryEscape(originalURL)
+		proxyURL := "/_proxy/?url=" + encodedURL
+
+		// Reconstruct the img tag with the proxy URL
+		return fmt.Sprintf(`<img%s src="%s"%s>`, beforeSrc, proxyURL, afterSrc)
+	})
+}
+
 func runServer(inputFile string) error {
+	// Get the directory of the input file for serving static files
+	inputDir, err := filepath.Abs(filepath.Dir(inputFile))
+	if err != nil {
+		return fmt.Errorf("failed to get input directory: %w", err)
+	}
+
 	// Keep track of the generated HTML
 	var (
 		currentHTML   string
@@ -153,13 +190,17 @@ func runServer(inputFile string) error {
 
 	// Function to generate HTML from markdown
 	generateHTML := func() error {
-		html, err := generateFromFile(inputFile)
+		// In serve mode, skip base64 encoding and serve files directly
+		html, err := generateFromFile(inputFile, true)
 		if err != nil {
 			mu.Lock()
 			generateError = err
 			mu.Unlock()
 			return err
 		}
+
+		// Rewrite external image URLs to use our proxy to avoid CORB
+		html = rewriteExternalImageURLs(html)
 
 		mu.Lock()
 		currentHTML = html
@@ -185,6 +226,7 @@ func runServer(inputFile string) error {
 	mu.Unlock()
 
 	log.Printf("Serving presentation from %s", inputFile)
+	log.Printf("Serving static files from %s", inputDir)
 
 	// Start file watcher if enabled
 	if *watch {
@@ -222,8 +264,60 @@ func runServer(inputFile string) error {
 		log.Printf("Watching %s for changes...", inputFile)
 	}
 
-	// HTTP handler
+	// Image proxy handler to avoid CORB issues with external images
+	http.HandleFunc("/_proxy/", func(w http.ResponseWriter, r *http.Request) {
+		// Extract the URL from the query parameter
+		imageURL := r.URL.Query().Get("url")
+		if imageURL == "" {
+			http.Error(w, "Missing url parameter", http.StatusBadRequest)
+			return
+		}
+
+		// Validate URL
+		parsedURL, err := url.Parse(imageURL)
+		if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") {
+			http.Error(w, "Invalid URL", http.StatusBadRequest)
+			return
+		}
+
+		// Fetch the image
+		resp, err := http.Get(imageURL)
+		if err != nil {
+			log.Printf("Failed to fetch image %s: %v", imageURL, err)
+			http.Error(w, "Failed to fetch image", http.StatusBadGateway)
+			return
+		}
+		defer resp.Body.Close()
+
+		// Check status code
+		if resp.StatusCode != http.StatusOK {
+			http.Error(w, fmt.Sprintf("Remote server returned %d", resp.StatusCode), resp.StatusCode)
+			return
+		}
+
+		// Copy headers
+		if contentType := resp.Header.Get("Content-Type"); contentType != "" {
+			w.Header().Set("Content-Type", contentType)
+		}
+		w.Header().Set("Cache-Control", "public, max-age=31536000")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Stream the image data
+		_, err = io.Copy(w, resp.Body)
+		if err != nil {
+			log.Printf("Error streaming image: %v", err)
+		}
+	})
+
+	// HTTP handler for the presentation
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Only serve the HTML at the root path
+		if r.URL.Path != "/" {
+			// Serve static files from the input directory
+			http.ServeFile(w, r, filepath.Join(inputDir, r.URL.Path))
+			return
+		}
+
 		mu.RLock()
 		html := currentHTML
 		genErr := generateError
@@ -234,9 +328,8 @@ func runServer(inputFile string) error {
 			return
 		}
 
-		// Set headers to allow external resources (images, fonts, etc.)
+		// Set headers
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:; font-src * data:; style-src * 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';")
 		_, _ = w.Write([]byte(html))
 	})
 
