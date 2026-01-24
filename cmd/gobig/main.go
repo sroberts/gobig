@@ -60,7 +60,12 @@ func main() {
 
 	// Validate theme
 	if !assets.ValidateTheme(*theme) {
-		fmt.Fprintf(os.Stderr, "Error: invalid theme '%s'. Valid themes: dark, light, white\n", *theme)
+		availableThemes, _ := assets.ListAvailableThemes()
+		if len(availableThemes) > 0 {
+			fmt.Fprintf(os.Stderr, "Error: invalid theme '%s'. Available themes: %v\n", *theme, availableThemes)
+		} else {
+			fmt.Fprintf(os.Stderr, "Error: invalid theme '%s'\n", *theme)
+		}
 		os.Exit(1)
 	}
 
@@ -341,6 +346,18 @@ func runServer(inputFile string) error {
 }
 
 func usage() {
+	availableThemes, _ := assets.ListAvailableThemes()
+	themesStr := "dark, light, white"
+	if len(availableThemes) > 0 {
+		themesStr = ""
+		for i, t := range availableThemes {
+			if i > 0 {
+				themesStr += ", "
+			}
+			themesStr += t
+		}
+	}
+
 	fmt.Fprintf(os.Stderr, `gobig - Generate big.js presentations from Markdown
 
 Usage:
@@ -348,7 +365,7 @@ Usage:
 
 Options:
   -o <file>              Output HTML file (default: stdout)
-  -theme <name>          Theme: dark, light, or white (default: dark)
+  -theme <name>          Theme: %s (default: dark)
   -aspect-ratio <ratio>  Aspect ratio: number or "false" to disable (default: 1.6)
   -title <title>         Presentation title (default: from first slide)
   -serve                 Run as web server instead of generating file
@@ -387,5 +404,5 @@ Layouts:
   Custom CSS    Use custom grid-template syntax
 
 For more information: https://github.com/sroberts/big
-`)
+`, themesStr)
 }

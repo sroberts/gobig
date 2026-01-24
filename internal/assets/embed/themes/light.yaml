@@ -1,0 +1,26 @@
+# Light Theme for GoBig Presentations
+name: light
+description: Light theme with subtle gray background
+
+# Colors
+colors:
+  background: "#f5f5f5"
+  foreground: "#34383e"
+  # emphasis color defaults to foreground if not specified
+  emphasis: ""
+  link: "#0889d1"
+  link_hover_background: ""
+
+# Typography
+typography:
+  # Font family - supports system font stacks
+  font_family: "-apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, Ubuntu, roboto, noto, segoe ui, arial, sans-serif"
+  # Default font weight for body text
+  font_weight: 700
+
+# Link styling
+links:
+  text_decoration_skip: "ink"
+
+# Advanced customization (optional)
+custom_css: ""

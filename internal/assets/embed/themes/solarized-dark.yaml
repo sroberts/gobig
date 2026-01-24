@@ -1,0 +1,24 @@
+# Solarized Dark Theme for GoBig Presentations
+# Based on the popular Solarized color scheme
+name: solarized-dark
+description: Solarized dark theme with warm colors
+
+# Colors - Solarized Dark palette
+colors:
+  background: "#002b36"  # base03
+  foreground: "#839496"  # base0
+  emphasis: "#b58900"    # yellow
+  link: "#268bd2"        # blue
+  link_hover_background: "#073642"  # base02
+
+# Typography
+typography:
+  font_family: "-apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, Ubuntu, roboto, noto, segoe ui, arial, sans-serif"
+  font_weight: 700
+
+# Link styling
+links:
+  text_decoration_skip: "ink"
+
+# Advanced customization
+custom_css: ""

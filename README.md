@@ -10,7 +10,7 @@ A command-line tool to generate [big.js](https://github.com/sroberts/big) presen
 ## Features
 
 - 📝 **Simple Markdown**: Write presentations in familiar markdown syntax
-- 🎨 **Three Themes**: Dark, light, and white themes included
+- 🎨 **Customizable Themes**: Built-in themes plus YAML-based custom themes
 - 📐 **Grid Layouts**: Flexible CSS Grid-based layouts for complex slides
 - 🗣️ **Speaker Notes**: Hidden notes in HTML comments
 - 📦 **Single Binary**: No dependencies, just one executable
@@ -56,7 +56,7 @@ make update-big
 This will automatically fetch and update:
 - `big.js` - Core presentation framework
 - `big.css` - Base styles
-- Theme files (`dark.css`, `light.css`, `white.css`)
+- Legacy CSS theme files (if present)
 
 ### Cross-Compilation
 
@@ -112,7 +112,7 @@ gobig [options] <input.md>
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-o <file>` | Output HTML file | stdout |
-| `-theme <name>` | Theme: dark, light, or white | dark |
+| `-theme <name>` | Theme name (see [THEMES.md](THEMES.md)) | dark |
 | `-aspect-ratio <ratio>` | Aspect ratio (number or "false") | 1.6 |
 | `-title <title>` | Presentation title | From first slide |
 | `-serve` | Run as web server instead of generating file | false |
@@ -161,6 +161,53 @@ gobig -serve -watch -theme light -port 8080 presentation.md
 ```
 
 Once the server is running, open your browser to `http://localhost:8080` (or your specified port) to view the presentation. With `-watch` enabled, the presentation will automatically regenerate when you save changes to your markdown file - just refresh your browser to see the updates.
+
+## Themes
+
+GoBig supports customizable themes defined in YAML format. Themes control colors, typography, and other visual aspects of your presentations.
+
+### Built-in Themes
+
+- **dark** (default) - High-contrast dark theme
+- **light** - Light gray background
+- **white** - Pure white with bold text
+- **solarized-dark** - Solarized color scheme
+- **oceanic** - Cool blue tones
+
+### Using Themes
+
+```bash
+# Use a built-in theme
+gobig -theme light -o presentation.html slides.md
+gobig -serve -theme solarized-dark presentation.md
+```
+
+### Creating Custom Themes
+
+Create custom themes using YAML files. See [THEMES.md](THEMES.md) for complete documentation on:
+
+- Theme file structure and properties
+- Color and typography customization
+- Adding custom CSS rules
+- Installing custom themes
+
+Example custom theme:
+
+```yaml
+name: midnight
+description: Deep blue midnight theme
+
+colors:
+  background: "#0a0e27"
+  foreground: "#e0e6f0"
+  emphasis: "#ffd700"
+  link: "#66b3ff"
+  link_hover_background: "#1a2847"
+
+typography:
+  font_family: "-apple-system, BlinkMacSystemFont, ..."
+  font_weight: 600
+```
 
 ## Markdown Syntax
 

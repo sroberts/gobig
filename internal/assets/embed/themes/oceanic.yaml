@@ -1,0 +1,28 @@
+# Oceanic Theme for GoBig Presentations
+# Cool blue tones inspired by the ocean
+name: oceanic
+description: Cool oceanic theme with blue tones
+
+# Colors
+colors:
+  background: "#1b2b34"
+  foreground: "#d8dee9"
+  emphasis: "#fac863"
+  link: "#6699cc"
+  link_hover_background: "#343d46"
+
+# Typography
+typography:
+  font_family: "-apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, Ubuntu, roboto, noto, segoe ui, arial, sans-serif"
+  font_weight: 700
+
+# Link styling
+links:
+  text_decoration_skip: "ink"
+
+# Advanced customization - add custom CSS rules here
+custom_css: |
+  /* Custom styles for oceanic theme */
+  h1 {
+    color: #5fb3b3;
+  }
