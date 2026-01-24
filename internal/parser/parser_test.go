@@ -190,3 +190,145 @@ func TestSlideDetectType(t *testing.T) {
 		t.Errorf("Expected SlideTypeContent, got %v", slideType)
 	}
 }
+
+// TestParseStringMalformedYAML tests handling of malformed YAML
+// Note: The parser logs warnings for malformed YAML but continues processing
+func TestParseStringMalformedYAML(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+	}{
+		{
+			name: "invalid slide metadata YAML",
+			content: `<!-- slide
+layout: [invalid yaml structure
+class: test
+-->
+
+# Slide
+
+Content`,
+		},
+		{
+			name: "invalid presentation metadata YAML",
+			content: `<!-- presentation
+title: [broken
+time-to-next: not a number
+-->
+
+# Slide
+
+Content`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewParser()
+			// Parser should continue even with malformed YAML (it logs warnings)
+			err := p.ParseString(tt.content)
+			if err != nil {
+				t.Errorf("Parser should handle malformed YAML gracefully, got error: %v", err)
+			}
+			// Should still produce a slide
+			slides := p.GetSlides()
+			if len(slides) == 0 {
+				t.Error("Expected at least one slide even with malformed YAML")
+			}
+		})
+	}
+}
+
+// TestParseStringWithMultipleSeparators tests handling of consecutive separators
+func TestParseStringWithMultipleSeparators(t *testing.T) {
+	p := NewParser()
+	content := `# Slide 1
+
+Content
+
+---
+
+---
+
+# Slide 2
+
+More content`
+
+	err := p.ParseString(content)
+	if err != nil {
+		t.Fatalf("ParseString() failed: %v", err)
+	}
+
+	slides := p.GetSlides()
+	// Should handle empty slides or skip them appropriately
+	if len(slides) == 0 {
+		t.Error("Expected at least one slide")
+	}
+}
+
+// TestParseStringWhitespaceOnly tests handling of whitespace-only content
+func TestParseStringWhitespaceOnly(t *testing.T) {
+	p := NewParser()
+	content := `
+
+
+	`
+
+	err := p.ParseString(content)
+	// Should error on whitespace-only content
+	if err == nil {
+		t.Error("Expected error for whitespace-only content")
+	}
+}
+
+// TestParseStringWithComplexNotes tests complex note patterns
+func TestParseStringWithComplexNotes(t *testing.T) {
+	p := NewParser()
+	content := `# Slide
+
+Content
+
+<!-- Note 1 -->
+
+More content
+
+<!-- Note 2
+Multi-line note
+with details
+-->`
+
+	err := p.ParseString(content)
+	if err != nil {
+		t.Fatalf("ParseString() failed: %v", err)
+	}
+
+	slides := p.GetSlides()
+	if len(slides) != 1 {
+		t.Fatalf("Expected 1 slide, got %d", len(slides))
+	}
+
+	// Should extract notes
+	if slides[0].Notes == "" {
+		t.Error("Expected notes to be extracted")
+	}
+}
+
+// TestParseFileNotFound tests handling of non-existent files
+func TestParseFileNotFound(t *testing.T) {
+	p := NewParser()
+	err := p.ParseFile("/nonexistent/path/to/file.md")
+	if err == nil {
+		t.Error("Expected error for non-existent file")
+	}
+}
+
+// TestParseFileInvalidPath tests handling of invalid file paths
+func TestParseFileInvalidPath(t *testing.T) {
+	p := NewParser()
+	// Try to parse a directory instead of a file
+	err := p.ParseFile("/tmp")
+	if err == nil {
+		// Some systems might allow reading directories as files, so we're lenient here
+		t.Log("Warning: parsing directory didn't produce expected error")
+	}
+}

@@ -45,6 +45,22 @@ jobs:
           total=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
           echo "Total test coverage: ${total}%"
 
+      - name: Check coverage threshold
+        run: |
+          total=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
+          threshold=50
+          echo "Current coverage: ${total}%"
+          echo "Required threshold: ${threshold}%"
+          if (( $(echo "$total < $threshold" | bc -l) )); then
+            echo "❌ Coverage ${total}% is below threshold ${threshold}%"
+            exit 1
+          else
+            echo "✓ Coverage ${total}% meets threshold ${threshold}%"
+          fi
+
+      - name: Display coverage by package
+        run: go tool cover -func=coverage.txt | grep -v "total:" | sort -k3 -n -r | head -20
+
   build:
     name: Build
     runs-on: ubuntu-latest
