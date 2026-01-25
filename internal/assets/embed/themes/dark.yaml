@@ -1,0 +1,28 @@
+# Dark Theme for GoBig Presentations
+name: dark
+description: Default dark theme with high contrast
+
+# Colors
+colors:
+  background: "#272c32"
+  foreground: "#fff"
+  emphasis: "#fadb03"
+  link: "#7cbfe5"
+  link_hover_background: "#4e5b6f"
+
+# Typography
+typography:
+  # Font family - supports system font stacks
+  font_family: "-apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, Ubuntu, roboto, noto, segoe ui, arial, sans-serif"
+  # Default font weight for body text
+  font_weight: 700
+  # Font weight override for specific elements (optional)
+  # emphasis_font_weight: 700
+
+# Link styling
+links:
+  text_decoration_skip: "ink"
+
+# Advanced customization (optional)
+# You can add custom CSS rules here
+custom_css: ""

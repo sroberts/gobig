@@ -1,0 +1,26 @@
+# White Theme for GoBig Presentations
+name: white
+description: High-contrast white theme with bold text
+
+# Colors
+colors:
+  background: "#fff"
+  foreground: "#000"
+  # emphasis color defaults to foreground if not specified
+  emphasis: ""
+  link: "#0889d1"
+  link_hover_background: ""
+
+# Typography
+typography:
+  # Font family - supports system font stacks
+  font_family: "-apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, Ubuntu, roboto, noto, segoe ui, arial, sans-serif"
+  # Default font weight for body text (extra bold for high contrast)
+  font_weight: 800
+
+# Link styling
+links:
+  text_decoration_skip: "ink"
+
+# Advanced customization (optional)
+custom_css: ""
