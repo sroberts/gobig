@@ -24,6 +24,7 @@ type Options struct {
 	Title                string                         // Presentation title
 	AspectRatio          string                         // Aspect ratio (e.g., "1.6", "2", "false")
 	BasePath             string                         // Base path for resolving relative image paths
+	SkipBase64Images     bool                           // Skip base64 encoding images (for serve mode)
 	PresentationMetadata parserPkg.PresentationMetadata // Presentation-level metadata
 }
 
@@ -186,8 +187,15 @@ func (g *Generator) generateLayoutSlide(slide *parserPkg.Slide) string {
 
 	for _, part := range parts {
 		html := g.markdownToHTML(part)
-		sb.WriteString("\n      ")
+
+		// Remove <p> tags that wrap images in layouts - they break the CSS
+		// Match <p><img.../></p> and replace with just <img.../>
+		imgOnlyRegex := regexp.MustCompile(`<p>(<img[^>]*>)</p>`)
+		html = imgOnlyRegex.ReplaceAllString(html, "$1")
+
+		sb.WriteString("\n      <div>")
 		sb.WriteString(html)
+		sb.WriteString("</div>")
 	}
 
 	sb.WriteString("\n    </div>")
@@ -212,7 +220,8 @@ func (g *Generator) markdownToHTML(markdown string) string {
 
 // processImages converts local image paths to base64 data URIs
 func (g *Generator) processImages(html string) string {
-	if g.options.BasePath == "" {
+	// Skip base64 encoding if requested (e.g., for serve mode)
+	if g.options.SkipBase64Images || g.options.BasePath == "" {
 		return html
 	}
 
@@ -302,18 +311,38 @@ func layoutToGridStyle(layout string) string {
 }
 
 // splitContentForLayout splits content into parts for layout
-// Each paragraph or image becomes a grid item
+// Separates images from text content, keeping text grouped together
 func splitContentForLayout(content string) []string {
 	var parts []string
+	imageRegex := regexp.MustCompile(`(?m)^!\[.*?\]\(.*?\)\s*$`)
 
-	// Split on double newlines or image boundaries
-	sections := strings.Split(content, "\n\n")
+	lines := strings.Split(content, "\n")
+	var textGroup strings.Builder
 
-	for _, section := range sections {
-		section = strings.TrimSpace(section)
-		if section != "" {
-			parts = append(parts, section)
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		// Check if this line is an image
+		if imageRegex.MatchString(trimmed) {
+			// Save any accumulated text first
+			if textGroup.Len() > 0 {
+				parts = append(parts, strings.TrimSpace(textGroup.String()))
+				textGroup.Reset()
+			}
+			// Add image as its own part
+			parts = append(parts, trimmed)
+		} else if trimmed != "" {
+			// Accumulate text content
+			if textGroup.Len() > 0 {
+				textGroup.WriteString("\n\n")
+			}
+			textGroup.WriteString(trimmed)
 		}
+	}
+
+	// Add any remaining text
+	if textGroup.Len() > 0 {
+		parts = append(parts, strings.TrimSpace(textGroup.String()))
 	}
 
 	return parts
