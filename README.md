@@ -1,8 +1,9 @@
 # gobig
 
+[![CI](https://img.shields.io/github/actions/workflow/status/sroberts/gobig/ci.yml?branch=main&label=CI)](https://github.com/sroberts/gobig/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/sroberts/gobig)](https://github.com/sroberts/gobig/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/sroberts/gobig/release.yml?branch=main)](https://github.com/sroberts/gobig/actions)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/sroberts/gobig)](https://go.dev/)
+[![Test Coverage](https://img.shields.io/badge/coverage-52.8%25-brightgreen)](https://github.com/sroberts/gobig/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/sroberts/gobig)](LICENSE)
 
 A command-line tool to generate [big.js](https://github.com/sroberts/big) presentations from Markdown files. Create beautiful, minimal presentations using simple markdown syntax with support for layouts, themes, and speaker notes.

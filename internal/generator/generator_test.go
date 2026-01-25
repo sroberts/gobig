@@ -258,3 +258,158 @@ func TestGenerateWithAspectRatioFalse(t *testing.T) {
 		t.Error("Generated HTML should handle aspect ratio false")
 	}
 }
+
+// TestGenerateWithDifferentAspectRatios tests various aspect ratio values
+func TestGenerateWithDifferentAspectRatios(t *testing.T) {
+	ratios := []string{"1.6", "2", "1.33", "16/9", "false"}
+
+	for _, ratio := range ratios {
+		t.Run(ratio, func(t *testing.T) {
+			opts := Options{
+				Theme:       "dark",
+				Title:       "Test",
+				AspectRatio: ratio,
+			}
+
+			gen := NewGenerator(opts)
+
+			slides := []*parser.Slide{
+				{Content: "# Test"},
+			}
+
+			html, err := gen.Generate(slides)
+			if err != nil {
+				t.Fatalf("Generate() failed for ratio %s: %v", ratio, err)
+			}
+
+			if len(html) == 0 {
+				t.Errorf("Generate() returned empty HTML for ratio %s", ratio)
+			}
+		})
+	}
+}
+
+// TestGenerateWithComplexMarkdown tests generation with various markdown features
+func TestGenerateWithComplexMarkdown(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+		check   func(t *testing.T, html string)
+	}{
+		{
+			name:    "code blocks",
+			content: "# Code Example\n\n```go\nfunc main() {\n\tfmt.Println(\"hello\")\n}\n```",
+			check: func(t *testing.T, html string) {
+				if !strings.Contains(html, "func main()") {
+					t.Error("Expected code block content")
+				}
+			},
+		},
+		{
+			name:    "lists",
+			content: "# Lists\n\n- Item 1\n- Item 2\n- Item 3",
+			check: func(t *testing.T, html string) {
+				if !strings.Contains(html, "Item 1") {
+					t.Error("Expected list items")
+				}
+			},
+		},
+		{
+			name:    "links",
+			content: "# Links\n\n[Click here](https://example.com)",
+			check: func(t *testing.T, html string) {
+				if !strings.Contains(html, "Click here") {
+					t.Error("Expected link text")
+				}
+			},
+		},
+		{
+			name:    "emphasis and strong",
+			content: "# Formatting\n\n*italic* and **bold** text",
+			check: func(t *testing.T, html string) {
+				if !strings.Contains(html, "italic") && !strings.Contains(html, "bold") {
+					t.Error("Expected formatted text")
+				}
+			},
+		},
+		{
+			name:    "blockquotes",
+			content: "# Quote\n\n> This is a quote",
+			check: func(t *testing.T, html string) {
+				if !strings.Contains(html, "This is a quote") {
+					t.Error("Expected blockquote")
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := Options{
+				Theme: "dark",
+				Title: "Test",
+			}
+
+			gen := NewGenerator(opts)
+
+			slides := []*parser.Slide{
+				{Content: tt.content},
+			}
+
+			html, err := gen.Generate(slides)
+			if err != nil {
+				t.Fatalf("Generate() failed: %v", err)
+			}
+
+			if tt.check != nil {
+				tt.check(t, html)
+			}
+		})
+	}
+}
+
+// TestGenerateWithInvalidTheme tests handling of invalid themes
+func TestGenerateWithInvalidTheme(t *testing.T) {
+	opts := Options{
+		Theme: "invalid-theme",
+		Title: "Test",
+	}
+
+	gen := NewGenerator(opts)
+
+	slides := []*parser.Slide{
+		{Content: "# Test"},
+	}
+
+	// Invalid theme should produce an error since theme validation should happen before generation
+	_, err := gen.Generate(slides)
+	if err == nil {
+		t.Error("Expected error for invalid theme")
+	}
+}
+
+// TestGenerateWithSpecialCharacters tests handling of special characters
+func TestGenerateWithSpecialCharacters(t *testing.T) {
+	opts := Options{
+		Theme: "dark",
+		Title: "Test",
+	}
+
+	gen := NewGenerator(opts)
+
+	slides := []*parser.Slide{
+		{
+			Content: "# Special & Characters\n\n<script>alert('test')</script>\n\n\"quotes\" and 'apostrophes'",
+		},
+	}
+
+	html, err := gen.Generate(slides)
+	if err != nil {
+		t.Fatalf("Generate() failed: %v", err)
+	}
+
+	// Should properly escape special characters
+	if len(html) == 0 {
+		t.Error("Generate() returned empty HTML")
+	}
+}

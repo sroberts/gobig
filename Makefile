@@ -1,4 +1,4 @@
-.PHONY: build build-all install clean test help update-big
+.PHONY: build build-all install clean test test-race test-coverage test-coverage-html test-verbose test-bench test-coverage-check help update-big
 
 # Build variables
 BINARY_NAME=gobig
@@ -71,6 +71,53 @@ test:
 	@echo "Running tests..."
 	go test -v ./...
 
+# Run tests with race detector
+test-race:
+	@echo "Running tests with race detector..."
+	go test -v -race ./...
+
+# Run tests with coverage
+test-coverage:
+	@echo "Running tests with coverage..."
+	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+	@echo ""
+	@echo "Coverage summary:"
+	@go tool cover -func=coverage.txt | grep total
+
+# Generate HTML coverage report
+test-coverage-html: test-coverage
+	@echo "Generating HTML coverage report..."
+	go tool cover -html=coverage.txt -o coverage.html
+	@echo "Coverage report saved to coverage.html"
+
+# Run tests with verbose output and show coverage per package
+test-verbose:
+	@echo "Running verbose tests with coverage per package..."
+	@for pkg in $$(go list ./...); do \
+		echo ""; \
+		echo "Testing $$pkg..."; \
+		go test -v -race -cover $$pkg; \
+	done
+
+# Run benchmarks
+test-bench:
+	@echo "Running benchmarks..."
+	go test -v -bench=. -benchmem ./...
+
+# Check test coverage threshold (requires 50% minimum)
+test-coverage-check: test-coverage
+	@echo "Checking coverage threshold..."
+	@total=$$(go tool cover -func=coverage.txt | grep total | awk '{print $$3}' | sed 's/%//'); \
+	threshold=50; \
+	echo "Current coverage: $${total}%"; \
+	echo "Required threshold: $${threshold}%"; \
+	if [ $$(echo "$$total < $$threshold" | bc -l) -eq 1 ]; then \
+		echo "❌ Coverage $${total}% is below threshold $${threshold}%"; \
+		exit 1; \
+	else \
+		echo "✓ Coverage $${total}% meets threshold $${threshold}%"; \
+	fi
+
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
@@ -80,10 +127,22 @@ clean:
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  build      - Build for current platform"
-	@echo "  build-all  - Cross-compile for all platforms (Linux, macOS, Windows)"
-	@echo "  update-big - Update big.js assets from $(BIG_REPO) to latest version"
-	@echo "  install    - Install to \$$GOPATH/bin"
-	@echo "  test       - Run tests"
-	@echo "  clean      - Clean build artifacts"
-	@echo "  help       - Show this help message"
+	@echo ""
+	@echo "Build:"
+	@echo "  build              - Build for current platform"
+	@echo "  build-all          - Cross-compile for all platforms (Linux, macOS, Windows)"
+	@echo "  install            - Install to \$$GOPATH/bin"
+	@echo "  clean              - Clean build artifacts"
+	@echo ""
+	@echo "Testing:"
+	@echo "  test               - Run tests"
+	@echo "  test-race          - Run tests with race detector"
+	@echo "  test-coverage      - Run tests with coverage report"
+	@echo "  test-coverage-html - Generate HTML coverage report"
+	@echo "  test-verbose       - Run tests with verbose output per package"
+	@echo "  test-bench         - Run benchmarks"
+	@echo "  test-coverage-check - Check coverage meets 50% threshold"
+	@echo ""
+	@echo "Other:"
+	@echo "  update-big         - Update big.js assets from $(BIG_REPO) to latest version"
+	@echo "  help               - Show this help message"
