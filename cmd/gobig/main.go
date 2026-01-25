@@ -15,6 +15,7 @@ import (
 
 	"gobig/internal/assets"
 	"gobig/internal/generator"
+	"gobig/internal/linter"
 	"gobig/internal/parser"
 )
 
@@ -28,6 +29,7 @@ var (
 	serve       = flag.Bool("serve", false, "Run as web server instead of generating file")
 	port        = flag.Int("port", 8080, "Port for web server (default: 8080)")
 	watch       = flag.Bool("watch", false, "Watch markdown file for changes and regenerate (only with -serve)")
+	lint        = flag.Bool("lint", false, "Lint the markdown file and report issues")
 	showVersion = flag.Bool("version", false, "Show version information")
 	showHelp    = flag.Bool("help", false, "Show help message")
 )
@@ -75,8 +77,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Run in serve mode or conversion mode
-	if *serve {
+	if *lint && *serve {
+		fmt.Fprintln(os.Stderr, "Error: -lint and -serve cannot be used together")
+		os.Exit(1)
+	}
+
+	if *lint && *outputFile != "" {
+		fmt.Fprintln(os.Stderr, "Error: -lint and -o cannot be used together")
+		os.Exit(1)
+	}
+
+	// Run in lint mode, serve mode, or conversion mode
+	if *lint {
+		if err := runLint(inputFile); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	} else if *serve {
 		if err := runServer(inputFile); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
@@ -142,6 +159,36 @@ func run(inputFile string) error {
 	} else {
 		// Write to stdout
 		fmt.Print(html)
+	}
+
+	return nil
+}
+
+func runLint(inputFile string) error {
+	// Get the directory of the input file for resolving relative paths
+	baseDir, err := filepath.Abs(filepath.Dir(inputFile))
+	if err != nil {
+		baseDir = filepath.Dir(inputFile)
+	}
+
+	// Create linter and lint the file
+	l := linter.NewLinter(baseDir)
+	result, err := l.LintFile(inputFile)
+	if err != nil {
+		return err
+	}
+
+	// Print results
+	if len(result.Issues) > 0 {
+		fmt.Fprintln(os.Stderr, result.GetSummary())
+		fmt.Print(result.FormatIssues())
+
+		// Exit with error code if there are errors
+		if result.HasError {
+			os.Exit(1)
+		}
+	} else {
+		fmt.Fprintln(os.Stderr, result.GetSummary())
 	}
 
 	return nil
@@ -354,6 +401,7 @@ Options:
   -serve                 Run as web server instead of generating file
   -port <port>           Port for web server (default: 8080)
   -watch                 Watch markdown file for changes (only with -serve)
+  -lint                  Lint the markdown file and report issues
   -version               Show version information
   -help                  Show this help message
 
@@ -362,6 +410,9 @@ Examples:
   gobig -o index.html presentation.md
   gobig -theme light -o output.html slides.md
   gobig -aspect-ratio 2 -title "My Talk" -o slides.html talk.md
+
+  # Lint markdown file
+  gobig -lint presentation.md
 
   # Run as web server
   gobig -serve presentation.md
