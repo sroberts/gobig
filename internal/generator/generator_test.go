@@ -297,7 +297,7 @@ func TestGenerateWithComplexMarkdown(t *testing.T) {
 		check   func(t *testing.T, html string)
 	}{
 		{
-			name: "code blocks",
+			name:    "code blocks",
 			content: "# Code Example\n\n```go\nfunc main() {\n\tfmt.Println(\"hello\")\n}\n```",
 			check: func(t *testing.T, html string) {
 				if !strings.Contains(html, "func main()") {
@@ -306,7 +306,7 @@ func TestGenerateWithComplexMarkdown(t *testing.T) {
 			},
 		},
 		{
-			name: "lists",
+			name:    "lists",
 			content: "# Lists\n\n- Item 1\n- Item 2\n- Item 3",
 			check: func(t *testing.T, html string) {
 				if !strings.Contains(html, "Item 1") {
@@ -315,7 +315,7 @@ func TestGenerateWithComplexMarkdown(t *testing.T) {
 			},
 		},
 		{
-			name: "links",
+			name:    "links",
 			content: "# Links\n\n[Click here](https://example.com)",
 			check: func(t *testing.T, html string) {
 				if !strings.Contains(html, "Click here") {
@@ -324,7 +324,7 @@ func TestGenerateWithComplexMarkdown(t *testing.T) {
 			},
 		},
 		{
-			name: "emphasis and strong",
+			name:    "emphasis and strong",
 			content: "# Formatting\n\n*italic* and **bold** text",
 			check: func(t *testing.T, html string) {
 				if !strings.Contains(html, "italic") && !strings.Contains(html, "bold") {
@@ -333,7 +333,7 @@ func TestGenerateWithComplexMarkdown(t *testing.T) {
 			},
 		},
 		{
-			name: "blockquotes",
+			name:    "blockquotes",
 			content: "# Quote\n\n> This is a quote",
 			check: func(t *testing.T, html string) {
 				if !strings.Contains(html, "This is a quote") {
