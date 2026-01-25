@@ -92,6 +92,78 @@ Content here.
 	}
 }
 
+func TestLintStringFirstSlideInvalidLayout(t *testing.T) {
+	linter := NewLinter(".")
+	content := `<!-- slide
+layout: invalid-layout
+-->
+
+# First Slide
+
+Content here.
+
+---
+
+# Second Slide
+
+More content.
+`
+
+	result, err := linter.LintString(content, "test.md")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	// Should have a warning about unknown layout in the first slide
+	foundWarning := false
+	for _, issue := range result.Issues {
+		if issue.Severity == "warning" && strings.Contains(issue.Message, "Unknown layout") {
+			foundWarning = true
+			break
+		}
+	}
+
+	if !foundWarning {
+		t.Errorf("Expected warning about invalid layout in first slide, got issues: %v", result.Issues)
+	}
+}
+
+func TestLintStringFirstSlideNegativeTimeToNext(t *testing.T) {
+	linter := NewLinter(".")
+	content := `<!-- slide
+time-to-next: -5
+-->
+
+# First Slide
+
+Content here.
+
+---
+
+# Second Slide
+
+More content.
+`
+
+	result, err := linter.LintString(content, "test.md")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	// Should have an error about negative time-to-next in the first slide
+	foundError := false
+	for _, issue := range result.Issues {
+		if issue.Severity == "error" && strings.Contains(issue.Message, "time-to-next cannot be negative") {
+			foundError = true
+			break
+		}
+	}
+
+	if !foundError {
+		t.Errorf("Expected error about negative time-to-next in first slide, got issues: %v", result.Issues)
+	}
+}
+
 func TestLintStringValidLayout(t *testing.T) {
 	linter := NewLinter(".")
 	content := `<!-- slide
@@ -110,6 +182,64 @@ Content here.
 
 	if result.HasError {
 		t.Errorf("Expected no errors for valid layout, got: %v", result.Issues)
+	}
+}
+
+func TestLintStringCSSCustomLayout(t *testing.T) {
+	linter := NewLinter(".")
+	content := `<!-- slide
+layout: grid-template-columns: 1fr 2fr;
+-->
+
+# Test Slide
+
+Content here.
+`
+
+	result, err := linter.LintString(content, "test.md")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	// Should not have a warning about unknown layout for CSS-style layouts
+	for _, issue := range result.Issues {
+		if strings.Contains(issue.Message, "Unknown layout") {
+			t.Errorf("Unexpected warning about CSS-style layout: %v", issue)
+		}
+	}
+}
+
+func TestLintStringInvalidSlideMetadata(t *testing.T) {
+	linter := NewLinter(".")
+	content := `<!-- slide
+layout: "Test"
+invalid-yaml: [unclosed array
+-->
+
+# Test Slide
+
+Content here.
+`
+
+	result, err := linter.LintString(content, "test.md")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if !result.HasError {
+		t.Error("Expected error for invalid YAML in slide metadata")
+	}
+
+	foundError := false
+	for _, issue := range result.Issues {
+		if issue.Severity == "error" && strings.Contains(issue.Message, "Invalid slide metadata YAML") {
+			foundError = true
+			break
+		}
+	}
+
+	if !foundError {
+		t.Errorf("Expected error about invalid slide metadata YAML, got issues: %v", result.Issues)
 	}
 }
 
