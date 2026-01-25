@@ -42,6 +42,7 @@ func NewLinter(baseDir string) *Linter {
 			"50-50":       true,
 			"75-25":       true,
 			"25-75":       true,
+			"50-50-rows":  true,
 			"75-25-rows":  true,
 			"25-75-rows":  true,
 			"grid-3x2":    true,
@@ -91,6 +92,9 @@ func (l *Linter) LintString(content, filename string) (*Result, error) {
 	// Check presentation metadata YAML syntax
 	l.checkPresentationMetadata(content, lines, result)
 
+	// Check slide metadata YAML syntax
+	l.checkSlideMetadata(content, lines, result)
+
 	// Check each slide
 	l.checkSlides(p.GetSlides(), lines, result)
 
@@ -123,6 +127,28 @@ func (l *Linter) checkPresentationMetadata(content string, lines []string, resul
 	}
 }
 
+// checkSlideMetadata validates slide-level metadata YAML syntax
+func (l *Linter) checkSlideMetadata(content string, lines []string, result *Result) {
+	matches := l.yamlSlideRegex.FindAllStringSubmatch(content, -1)
+	for _, match := range matches {
+		if len(match) > 1 {
+			yamlContent := match[1]
+			var metadata parser.SlideMetadata
+			err := yaml.Unmarshal([]byte(yamlContent), &metadata)
+			if err != nil {
+				// Find the line number of this slide metadata block
+				lineNum := l.findLineNumber(lines, match[0])
+				result.Issues = append(result.Issues, Issue{
+					Line:     lineNum,
+					Severity: "error",
+					Message:  fmt.Sprintf("Invalid slide metadata YAML: %v", err),
+				})
+				result.HasError = true
+			}
+		}
+	}
+}
+
 // checkSlides validates individual slides
 func (l *Linter) checkSlides(slides []*parser.Slide, lines []string, result *Result) {
 	if len(slides) == 0 {
@@ -136,7 +162,7 @@ func (l *Linter) checkSlides(slides []*parser.Slide, lines []string, result *Res
 	}
 
 	slideNum := 0
-	inSlide := false
+	inSlide := true // Start in the first slide
 	currentSlideStart := 1
 
 	for i, line := range lines {
@@ -163,13 +189,14 @@ func (l *Linter) checkSlides(slides []*parser.Slide, lines []string, result *Res
 // checkSlideContent validates a single slide's content
 func (l *Linter) checkSlideContent(slide *parser.Slide, startLine, endLine int, lines []string, result *Result) {
 	// Check layout validity
-	if slide.Metadata.Layout != "" && !l.validLayouts[slide.Metadata.Layout] {
+	layout := slide.Metadata.Layout
+	if layout != "" && !l.validLayouts[layout] && !l.isCSSLayout(layout) {
 		// Find the line with the layout metadata
 		lineNum := l.findMetadataLine(lines, startLine, endLine, "layout:")
 		result.Issues = append(result.Issues, Issue{
 			Line:     lineNum,
 			Severity: "warning",
-			Message:  fmt.Sprintf("Unknown layout '%s'. Valid layouts: %s", slide.Metadata.Layout, l.getValidLayoutsString()),
+			Message:  fmt.Sprintf("Unknown layout '%s'. Valid layouts: %s", layout, l.getValidLayoutsString()),
 		})
 	}
 
@@ -185,28 +212,38 @@ func (l *Linter) checkSlideContent(slide *parser.Slide, startLine, endLine int, 
 	}
 }
 
+// isCSSLayout returns true if the layout string looks like a CSS declaration
+// (e.g., "grid-template-columns: 1fr 2fr;"). Such layouts are allowed by the
+// generator and should not be treated as unknown named layouts.
+func (l *Linter) isCSSLayout(layout string) bool {
+	return strings.Contains(layout, ":") || strings.Contains(layout, ";")
+}
+
 // checkImageReferences validates that local image files exist
 func (l *Linter) checkImageReferences(content string, lines []string, result *Result) {
-	matches := l.imageRegex.FindAllStringSubmatch(content, -1)
-	for _, match := range matches {
-		if len(match) > 1 {
-			imagePath := match[1]
+	// Iterate line by line so we can accurately report the line number
+	for i, line := range lines {
+		matches := l.imageRegex.FindAllStringSubmatch(line, -1)
+		for _, match := range matches {
+			if len(match) > 1 {
+				imagePath := match[1]
 
-			// Skip external URLs
-			if strings.HasPrefix(imagePath, "http://") || strings.HasPrefix(imagePath, "https://") || strings.HasPrefix(imagePath, "data:") {
-				continue
-			}
+				// Skip external URLs
+				if strings.HasPrefix(imagePath, "http://") || strings.HasPrefix(imagePath, "https://") || strings.HasPrefix(imagePath, "data:") {
+					continue
+				}
 
-			// Check if local file exists
-			fullPath := filepath.Join(l.baseDir, imagePath)
-			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-				lineNum := l.findLineNumber(lines, match[0])
-				result.Issues = append(result.Issues, Issue{
-					Line:     lineNum,
-					Severity: "error",
-					Message:  fmt.Sprintf("Image file not found: %s", imagePath),
-				})
-				result.HasError = true
+				// Check if local file exists
+				fullPath := filepath.Join(l.baseDir, imagePath)
+				if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+					lineNum := i + 1
+					result.Issues = append(result.Issues, Issue{
+						Line:     lineNum,
+						Severity: "error",
+						Message:  fmt.Sprintf("Image file not found: %s", imagePath),
+					})
+					result.HasError = true
+				}
 			}
 		}
 	}
@@ -317,6 +354,6 @@ func (r *Result) GetSummary() string {
 		}
 	}
 
-	return fmt.Sprintf("Found %d issue(s): %d error(s), %d warning(s), %d info",
+	return fmt.Sprintf("Found %d issue(s): %d error(s), %d warning(s), %d info(s)",
 		len(r.Issues), errorCount, warningCount, infoCount)
 }

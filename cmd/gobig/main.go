@@ -183,9 +183,9 @@ func runLint(inputFile string) error {
 		fmt.Fprintln(os.Stderr, result.GetSummary())
 		fmt.Print(result.FormatIssues())
 
-		// Exit with error code if there are errors
+		// Return an error if there are lint errors; caller decides exit code
 		if result.HasError {
-			os.Exit(1)
+			return fmt.Errorf("lint errors detected")
 		}
 	} else {
 		fmt.Fprintln(os.Stderr, result.GetSummary())
