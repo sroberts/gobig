@@ -475,6 +475,13 @@ Once you've generated your HTML presentation, use these controls:
 - **p**: Print mode (2 slides per page with notes)
 - **j**: Jump mode (grid overview)
 
+### Full Screen
+
+- **f**: Toggle full-screen mode (or click the button in the bottom-right corner)
+- **Esc**: Exit full screen
+
+Full-screen mode hides browser chrome so the presentation takes over the entire display. The button appears on hover and is hidden while presenting in full screen; use **f** or **Esc** to exit.
+
 ### Direct Navigation
 
 - Navigate to specific slides using hash: `presentation.html#5`
