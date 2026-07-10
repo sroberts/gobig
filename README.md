@@ -441,9 +441,9 @@ All GitHub Flavored Markdown (GFM) is supported:
 `inline code` and
 
 \`\`\`javascript
-// Code blocks
+// Fenced code blocks
 function demo() {
-  return "with syntax highlighting";
+  return "shown in a styled panel";
 }
 \`\`\`
 
@@ -457,6 +457,20 @@ function demo() {
 
 ![Images](image.jpg)
 ```
+
+### Code Blocks
+
+Inline `` `code` `` and fenced code blocks are rendered in a monospace font. Fenced blocks appear in a distinguishable panel with padding and a subtle border, and their formatting and indentation are preserved. Long lines scroll horizontally within the panel instead of breaking the slide layout. The styling uses neutral colors that adapt automatically to the `dark`, `light`, and `white` themes.
+
+````markdown
+```python
+def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+```
+````
 
 ## Presentation Controls
 
