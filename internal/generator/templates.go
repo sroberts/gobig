@@ -140,13 +140,17 @@ pre code {
 }`
 
 // generateHTML generates the complete HTML document
-func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, theme, slides string) string {
+func generateHTML(title, bigCSS, themeCSS, highlightCSS, customCSS, bigJS, theme, slides string) string {
+	// Structural code styling (font, panel, scrolling) plus the theme's
+	// chroma token colors share a single <style> block.
+	codeBlockCSS := codeCSS + "\n\n" + highlightCSS
+
 	return fmt.Sprintf(
 		htmlTemplate,
 		title,             // %s - title
 		bigCSS,            // %s - big.css
 		themeCSS,          // %s - theme CSS
-		codeCSS,           // %s - code block CSS
+		codeBlockCSS,      // %s - code block CSS (structural + syntax colors)
 		customCSS,         // %s - aspect ratio script
 		bigJS,             // %s - big.js
 		theme,             // %s - body class (theme)

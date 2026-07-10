@@ -16,6 +16,7 @@ A command-line tool to generate [big.js](https://github.com/sroberts/big) presen
 - 📦 **Single Binary**: No dependencies, just one executable
 - 🔒 **Self-Contained**: Generates single HTML file with embedded assets
 - 🖼️ **Image Support**: Auto-converts local images to base64 data URIs
+- 🌈 **Syntax Highlighting**: Theme-matched code highlighting baked into the HTML (no JavaScript)
 
 ## Installation
 
@@ -460,7 +461,9 @@ function demo() {
 
 ### Code Blocks
 
-Inline `` `code` `` and fenced code blocks are rendered in a monospace font. Fenced blocks appear in a distinguishable panel with padding and a subtle border, and their formatting and indentation are preserved. Long lines scroll horizontally within the panel instead of breaking the slide layout. The styling uses neutral colors that adapt automatically to the `dark`, `light`, and `white` themes.
+Inline `` `code` `` and fenced code blocks are rendered in a monospace font. Fenced blocks appear in a distinguishable panel with padding and a subtle border, and their formatting and indentation are preserved. Long lines scroll horizontally within the panel instead of breaking the slide layout.
+
+**Syntax highlighting** is applied to fenced blocks using the language given after the opening fence:
 
 ````markdown
 ```python
@@ -471,6 +474,8 @@ def fibonacci(n):
     return a
 ```
 ````
+
+Highlighting is performed at generation time by [chroma](https://github.com/alecthomas/chroma) (200+ languages), so the output stays fully self-contained — the colors are baked into the HTML as CSS with no client-side JavaScript, and the deck works offline. The color scheme automatically matches the theme: a dark scheme (GitHub Dark) for the `dark` theme and a light scheme (GitHub Light) for the `light` and `white` themes. Blocks with no language, or an unrecognized one, still render in the styled monospace panel without colorization.
 
 ## Presentation Controls
 
