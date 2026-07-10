@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -89,22 +90,95 @@ func main() {
 	}
 }
 
-// generateFromFile parses a markdown file and generates HTML
+// isRemoteURL reports whether the input source is an http(s) URL rather than a
+// local file path.
+func isRemoteURL(source string) bool {
+	parsed, err := url.Parse(source)
+	if err != nil {
+		return false
+	}
+	return parsed.Scheme == "http" || parsed.Scheme == "https"
+}
+
+// resolveMarkdownURL normalizes a source URL to one that returns raw markdown.
+// GitHub Gist page URLs (https://gist.github.com/user/id) are rewritten to
+// their /raw endpoint, which returns the raw contents of the gist's first
+// file. Any other URL is returned unchanged so direct links to raw markdown
+// (e.g. raw.githubusercontent.com) continue to work.
+func resolveMarkdownURL(rawURL string) string {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+
+	if parsed.Host == "gist.github.com" {
+		trimmed := strings.TrimRight(parsed.Path, "/")
+		if !strings.HasSuffix(trimmed, "/raw") {
+			parsed.Path = trimmed + "/raw"
+			parsed.RawQuery = ""
+			parsed.Fragment = ""
+			return parsed.String()
+		}
+	}
+
+	return rawURL
+}
+
+// fetchRemoteMarkdown downloads markdown content from a remote URL, resolving
+// GitHub Gist URLs to their raw form first.
+func fetchRemoteMarkdown(source string) (string, error) {
+	fetchURL := resolveMarkdownURL(source)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Get(fetchURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch remote source: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("remote source returned status %d fetching %s", resp.StatusCode, fetchURL)
+	}
+
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read remote source: %w", err)
+	}
+
+	return string(content), nil
+}
+
+// generateFromFile parses a markdown source (local file or remote URL) and
+// generates HTML.
 func generateFromFile(inputFile string, skipBase64 bool) (string, error) {
-	// Parse markdown file
 	p := parser.NewParser()
-	if err := p.ParseFile(inputFile); err != nil {
-		return "", fmt.Errorf("failed to parse file: %w", err)
+	var basePath string
+
+	if isRemoteURL(inputFile) {
+		content, err := fetchRemoteMarkdown(inputFile)
+		if err != nil {
+			return "", err
+		}
+		if err := p.ParseString(content); err != nil {
+			return "", fmt.Errorf("failed to parse remote source: %w", err)
+		}
+		// Remote sources have no local base path; relative image references
+		// cannot be resolved, so images should use absolute URLs.
+		basePath = ""
+	} else {
+		if err := p.ParseFile(inputFile); err != nil {
+			return "", fmt.Errorf("failed to parse file: %w", err)
+		}
+		// Get base path for resolving relative image paths
+		abs, err := filepath.Abs(filepath.Dir(inputFile))
+		if err != nil {
+			abs = filepath.Dir(inputFile)
+		}
+		basePath = abs
 	}
 
 	slides := p.GetSlides()
 	presentationMetadata := p.GetPresentationMetadata()
-
-	// Get base path for resolving relative image paths
-	basePath, err := filepath.Abs(filepath.Dir(inputFile))
-	if err != nil {
-		basePath = filepath.Dir(inputFile)
-	}
 
 	// Generate HTML
 	opts := generator.Options{
@@ -174,16 +248,24 @@ func rewriteExternalImageURLs(html string) string {
 }
 
 func runServer(inputFile string) error {
-	// Get the directory of the input file for serving static files
-	inputDir, err := filepath.Abs(filepath.Dir(inputFile))
-	if err != nil {
-		return fmt.Errorf("failed to get input directory: %w", err)
+	remote := isRemoteURL(inputFile)
+
+	// Get the directory of the input file for serving static files. Remote
+	// sources have no local directory to serve alongside them.
+	var inputDir string
+	if !remote {
+		dir, err := filepath.Abs(filepath.Dir(inputFile))
+		if err != nil {
+			return fmt.Errorf("failed to get input directory: %w", err)
+		}
+		inputDir = dir
 	}
 
 	// Keep track of the generated HTML
 	var (
 		currentHTML   string
 		lastMod       time.Time
+		lastContent   string
 		mu            sync.RWMutex
 		generateError error
 	)
@@ -215,53 +297,98 @@ func runServer(inputFile string) error {
 		return err
 	}
 
-	// Get initial file info
-	fileInfo, err := os.Stat(inputFile)
-	if err != nil {
-		return fmt.Errorf("failed to stat file: %w", err)
+	if remote {
+		log.Printf("Serving presentation from %s", inputFile)
+	} else {
+		// Get initial file info
+		fileInfo, err := os.Stat(inputFile)
+		if err != nil {
+			return fmt.Errorf("failed to stat file: %w", err)
+		}
+
+		mu.Lock()
+		lastMod = fileInfo.ModTime()
+		mu.Unlock()
+
+		log.Printf("Serving presentation from %s", inputFile)
+		log.Printf("Serving static files from %s", inputDir)
 	}
 
-	mu.Lock()
-	lastMod = fileInfo.ModTime()
-	mu.Unlock()
-
-	log.Printf("Serving presentation from %s", inputFile)
-	log.Printf("Serving static files from %s", inputDir)
-
-	// Start file watcher if enabled
+	// Start watcher if enabled
 	if *watch {
-		go func() {
-			ticker := time.NewTicker(1 * time.Second)
-			defer ticker.Stop()
+		if remote {
+			// Remote sources can't be stat'd, so poll the URL and compare
+			// content to detect changes.
+			if content, err := fetchRemoteMarkdown(inputFile); err == nil {
+				mu.Lock()
+				lastContent = content
+				mu.Unlock()
+			}
 
-			for range ticker.C {
-				fileInfo, err := os.Stat(inputFile)
-				if err != nil {
-					log.Printf("Error checking file: %v", err)
-					continue
-				}
+			go func() {
+				ticker := time.NewTicker(5 * time.Second)
+				defer ticker.Stop()
 
-				newModTime := fileInfo.ModTime()
+				for range ticker.C {
+					content, err := fetchRemoteMarkdown(inputFile)
+					if err != nil {
+						log.Printf("Error checking remote source: %v", err)
+						continue
+					}
 
-				mu.RLock()
-				currentLastMod := lastMod
-				mu.RUnlock()
+					mu.RLock()
+					changed := content != lastContent
+					mu.RUnlock()
 
-				if newModTime.After(currentLastMod) {
-					mu.Lock()
-					lastMod = newModTime
-					mu.Unlock()
+					if changed {
+						mu.Lock()
+						lastContent = content
+						mu.Unlock()
 
-					log.Printf("File changed, regenerating...")
-					if err := generateHTML(); err != nil {
-						log.Printf("Error regenerating: %v", err)
-					} else {
-						log.Printf("Presentation regenerated successfully")
+						log.Printf("Remote source changed, regenerating...")
+						if err := generateHTML(); err != nil {
+							log.Printf("Error regenerating: %v", err)
+						} else {
+							log.Printf("Presentation regenerated successfully")
+						}
 					}
 				}
-			}
-		}()
-		log.Printf("Watching %s for changes...", inputFile)
+			}()
+			log.Printf("Watching %s for changes...", inputFile)
+		} else {
+			go func() {
+				ticker := time.NewTicker(1 * time.Second)
+				defer ticker.Stop()
+
+				for range ticker.C {
+					fileInfo, err := os.Stat(inputFile)
+					if err != nil {
+						log.Printf("Error checking file: %v", err)
+						continue
+					}
+
+					newModTime := fileInfo.ModTime()
+
+					mu.RLock()
+					currentLastMod := lastMod
+					mu.RUnlock()
+
+					if newModTime.After(currentLastMod) {
+						mu.Lock()
+						lastMod = newModTime
+						mu.Unlock()
+
+						log.Printf("File changed, regenerating...")
+						if err := generateHTML(); err != nil {
+							log.Printf("Error regenerating: %v", err)
+						} else {
+							log.Printf("Presentation regenerated successfully")
+						}
+					}
+				}
+			}()
+			log.Printf("Watching %s for changes...", inputFile)
+		}
 	}
 
 	// Image proxy handler to avoid CORB issues with external images
@@ -313,6 +440,11 @@ func runServer(inputFile string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Only serve the HTML at the root path
 		if r.URL.Path != "/" {
+			// Remote sources have no local directory to serve static files from.
+			if remote {
+				http.NotFound(w, r)
+				return
+			}
 			// Serve static files from the input directory
 			http.ServeFile(w, r, filepath.Join(inputDir, r.URL.Path))
 			return
@@ -344,7 +476,10 @@ func usage() {
 	fmt.Fprintf(os.Stderr, `gobig - Generate big.js presentations from Markdown
 
 Usage:
-  gobig [options] <input.md>
+  gobig [options] <input.md | URL>
+
+The input may be a local markdown file or a remote URL. GitHub Gist page
+URLs are supported directly and resolved to their raw contents.
 
 Options:
   -o <file>              Output HTML file (default: stdout)
@@ -367,6 +502,9 @@ Examples:
   gobig -serve presentation.md
   gobig -serve -port 3000 presentation.md
   gobig -serve -watch -theme light presentation.md
+
+  # Serve a presentation hosted on a GitHub Gist
+  gobig -serve https://gist.github.com/sroberts/082105187cf9fd30fbe514559f1f4409
 
 Markdown Syntax:
   Slides:      Separate with --- (horizontal rule)
