@@ -24,20 +24,88 @@ const htmlTemplate = `<!DOCTYPE html>
 </head>
 <body class="%s">
 %s
+%s
 </body>
 </html>`
+
+// fullscreenSnippet adds a full-screen toggle to the presentation: press "f"
+// or click the on-screen button to enter/exit full screen (Esc also exits).
+// It is self-contained so it survives updates to the vendored big.js, and
+// binds only the "f" key, which big.js does not use.
+const fullscreenSnippet = `<button id="big-fullscreen" type="button" aria-label="Toggle full screen" title="Full screen (f)">&#x26F6;</button>
+<style>
+#big-fullscreen {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.375rem;
+  background: rgba(128, 128, 128, 0.25);
+  color: inherit;
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 2.5rem;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+body:hover #big-fullscreen { opacity: 0.4; }
+#big-fullscreen:hover { opacity: 1; }
+:fullscreen #big-fullscreen { display: none; }
+@media print { #big-fullscreen { display: none; } }
+</style>
+<script>
+(function () {
+  var btn = document.getElementById("big-fullscreen");
+  function fsElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement;
+  }
+  function toggle() {
+    if (fsElement()) {
+      (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
+    } else {
+      var el = document.documentElement;
+      (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+    }
+  }
+  if (btn) {
+    btn.addEventListener("click", function (e) {
+      // Stop the click from bubbling to big.js's document handler, which
+      // would otherwise advance to the next slide.
+      e.preventDefault();
+      e.stopPropagation();
+      toggle();
+      btn.blur();
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "f" && e.key !== "F") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+    e.preventDefault();
+    toggle();
+  });
+})();
+</script>`
 
 // generateHTML generates the complete HTML document
 func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, theme, slides string) string {
 	return fmt.Sprintf(
 		htmlTemplate,
-		title,     // %s - title
-		bigCSS,    // %s - big.css
-		themeCSS,  // %s - theme CSS
-		customCSS, // %s - aspect ratio script
-		bigJS,     // %s - big.js
-		theme,     // %s - body class (theme)
-		slides,    // %s - slides HTML
+		title,             // %s - title
+		bigCSS,            // %s - big.css
+		themeCSS,          // %s - theme CSS
+		customCSS,         // %s - aspect ratio script
+		bigJS,             // %s - big.js
+		theme,             // %s - body class (theme)
+		slides,            // %s - slides HTML
+		fullscreenSnippet, // %s - full-screen toggle button + script
 	)
 }
 
