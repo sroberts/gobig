@@ -162,6 +162,20 @@ gobig -serve -watch -theme light -port 8080 presentation.md
 
 Once the server is running, open your browser to `http://localhost:8080` (or your specified port) to view the presentation. With `-watch` enabled, the presentation will automatically regenerate when you save changes to your markdown file - just refresh your browser to see the updates.
 
+#### Remote Sources (GitHub Gists)
+
+The input can be a remote URL instead of a local file. GitHub Gist page URLs are supported directly — gobig resolves them to their raw contents automatically — so you can host a presentation on a Gist and serve it from anywhere:
+
+```bash
+# Serve a presentation hosted on a GitHub Gist
+gobig -serve https://gist.github.com/sroberts/082105187cf9fd30fbe514559f1f4409
+
+# Generate an HTML file from a remote source
+gobig -o slides.html https://gist.github.com/sroberts/082105187cf9fd30fbe514559f1f4409
+```
+
+Any URL that returns raw markdown works too (for example, `raw.githubusercontent.com` links). When serving a remote source with `-watch`, gobig polls the URL every few seconds and regenerates when the contents change. Note that remote sources have no local directory, so images must use absolute URLs rather than relative paths.
+
 ## Markdown Syntax
 
 ### Slides
