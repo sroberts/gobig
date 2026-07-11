@@ -9,7 +9,10 @@ import (
 	"regexp"
 	"strings"
 
+	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
+	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/yuin/goldmark"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
@@ -30,8 +33,21 @@ type Options struct {
 
 // Generator handles HTML generation from parsed slides
 type Generator struct {
-	options Options
-	md      goldmark.Markdown
+	options   Options
+	md        goldmark.Markdown
+	codeStyle string // chroma syntax-highlighting style name for the theme
+}
+
+// chromaStyleForTheme returns the chroma syntax-highlighting style that best
+// matches a gobig theme: a dark style for the dark theme, and a light style
+// for the light and white themes.
+func chromaStyleForTheme(theme string) string {
+	switch theme {
+	case "light", "white":
+		return "github"
+	default:
+		return "github-dark"
+	}
 }
 
 // NewGenerator creates a new generator with the given options
@@ -41,6 +57,8 @@ func NewGenerator(opts Options) *Generator {
 		opts.Theme = "dark"
 	}
 
+	codeStyle := chromaStyleForTheme(opts.Theme)
+
 	// Create goldmark markdown processor
 	md := goldmark.New(
 		goldmark.WithExtensions(
@@ -48,6 +66,15 @@ func NewGenerator(opts Options) *Generator {
 			extension.Table, // Tables
 			extension.Strikethrough,
 			extension.TaskList,
+			// Server-side syntax highlighting: colors are baked into the HTML
+			// as CSS classes (see highlightCSS), so the output stays fully
+			// self-contained with no client-side JavaScript.
+			highlighting.NewHighlighting(
+				highlighting.WithStyle(codeStyle),
+				highlighting.WithFormatOptions(
+					chromahtml.WithClasses(true),
+				),
+			),
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
@@ -58,9 +85,28 @@ func NewGenerator(opts Options) *Generator {
 	)
 
 	return &Generator{
-		options: opts,
-		md:      md,
+		options:   opts,
+		md:        md,
+		codeStyle: codeStyle,
 	}
+}
+
+// highlightCSS returns the chroma stylesheet for the generator's theme style.
+// It defines the token colors (and code-block background) referenced by the
+// class-based highlighted markup.
+func (g *Generator) highlightCSS() (string, error) {
+	style := styles.Get(g.codeStyle)
+	if style == nil {
+		style = styles.Fallback
+	}
+
+	formatter := chromahtml.New(chromahtml.WithClasses(true))
+	var buf bytes.Buffer
+	if err := formatter.WriteCSS(&buf, style); err != nil {
+		return "", fmt.Errorf("failed to generate syntax highlighting CSS: %w", err)
+	}
+
+	return buf.String(), nil
 }
 
 // Generate creates the final HTML output from slides
@@ -79,6 +125,12 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 	themeCSS, err := assets.GetTheme(g.options.Theme)
 	if err != nil {
 		return "", fmt.Errorf("failed to get theme: %w", err)
+	}
+
+	// Syntax-highlighting stylesheet for the theme's chroma style
+	highlightCSS, err := g.highlightCSS()
+	if err != nil {
+		return "", err
 	}
 
 	// Generate slides HTML
@@ -108,6 +160,7 @@ func (g *Generator) Generate(slides []*parserPkg.Slide) (string, error) {
 		title,
 		bigCSS,
 		themeCSS,
+		highlightCSS,
 		aspectRatioScript,
 		bigJS,
 		g.options.Theme,

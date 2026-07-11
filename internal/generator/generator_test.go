@@ -258,3 +258,87 @@ func TestGenerateWithAspectRatioFalse(t *testing.T) {
 		t.Error("Generated HTML should handle aspect ratio false")
 	}
 }
+
+func TestSyntaxHighlighting(t *testing.T) {
+	opts := Options{
+		Theme:       "dark",
+		Title:       "Test Highlighting",
+		AspectRatio: "1.6",
+	}
+
+	gen := NewGenerator(opts)
+
+	// Create a slide with a fenced code block
+	slides := []*parser.Slide{
+		{
+			Content: "# Code Example\n\n```go\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}\n```",
+		},
+	}
+
+	html, err := gen.Generate(slides)
+	if err != nil {
+		t.Fatalf("Generate() failed: %v", err)
+	}
+
+	// Verify that fenced code blocks contain Chroma class-based markup
+	if !strings.Contains(html, `class="chroma"`) {
+		t.Error("Generated HTML missing Chroma class markup for syntax highlighting")
+	}
+
+	// Verify that the output contains token spans (chroma generates spans for tokens)
+	if !strings.Contains(html, "<span") {
+		t.Error("Generated HTML missing token spans from Chroma syntax highlighting")
+	}
+
+	// Verify that Chroma CSS is injected into the HTML
+	if !strings.Contains(html, ".chroma") {
+		t.Error("Generated HTML missing Chroma CSS stylesheet")
+	}
+
+	// Verify CSS contains token color definitions
+	if !strings.Contains(html, ".chroma .k") || !strings.Contains(html, ".chroma .s") {
+		t.Error("Generated HTML missing Chroma token color definitions in CSS")
+	}
+}
+
+func TestSyntaxHighlightingAcrossThemes(t *testing.T) {
+	themes := []struct {
+		name          string
+		expectedStyle string
+	}{
+		{"dark", "github-dark"},
+		{"light", "github"},
+		{"white", "github"},
+	}
+
+	for _, tt := range themes {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := Options{
+				Theme: tt.name,
+				Title: "Test",
+			}
+
+			gen := NewGenerator(opts)
+
+			slides := []*parser.Slide{
+				{
+					Content: "```python\nprint('hello')\n```",
+				},
+			}
+
+			html, err := gen.Generate(slides)
+			if err != nil {
+				t.Fatalf("Generate() failed for theme %s: %v", tt.name, err)
+			}
+
+			// Verify highlighting works for all themes
+			if !strings.Contains(html, `class="chroma"`) {
+				t.Errorf("Theme %s: missing Chroma class markup", tt.name)
+			}
+
+			if !strings.Contains(html, ".chroma") {
+				t.Errorf("Theme %s: missing Chroma CSS", tt.name)
+			}
+		})
+	}
+}

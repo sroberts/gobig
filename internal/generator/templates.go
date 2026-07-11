@@ -17,6 +17,9 @@ const htmlTemplate = `<!DOCTYPE html>
   <style>
 %s
   </style>
+  <style>
+%s
+  </style>
   %s
   <script>
 %s
@@ -94,13 +97,60 @@ body:hover #big-fullscreen { opacity: 0.4; }
 })();
 </script>`
 
+// codeCSS styles inline and fenced code blocks so they render in a familiar
+// monospace font inside a distinguishable panel. Colors are neutral and
+// semi-transparent so they adapt to every theme (dark, light, white) without
+// per-theme rules, and it is injected by the generator so it survives updates
+// to the vendored big.css.
+const codeCSS = `pre, code, kbd, samp {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 500;
+}
+
+/* Inline code */
+code {
+  font-size: 0.9em;
+  background: rgba(127, 127, 127, 0.22);
+  padding: 0.08em 0.32em;
+  border-radius: 0.2em;
+}
+
+/* Fenced / indented code blocks */
+pre {
+  max-width: 100%;
+  margin: 0.4em 0;
+  padding: 0.6em 0.8em;
+  font-size: 0.6em;
+  line-height: 1.45;
+  text-align: left;
+  white-space: pre;
+  overflow-x: auto;
+  background: rgba(127, 127, 127, 0.16);
+  border: 1px solid rgba(127, 127, 127, 0.28);
+  border-radius: 0.35em;
+}
+
+/* Code inside a block should not get the inline pill treatment */
+pre code {
+  font-size: 1em;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  white-space: inherit;
+}`
+
 // generateHTML generates the complete HTML document
-func generateHTML(title, bigCSS, themeCSS, customCSS, bigJS, theme, slides string) string {
+func generateHTML(title, bigCSS, themeCSS, highlightCSS, customCSS, bigJS, theme, slides string) string {
+	// Structural code styling (font, panel, scrolling) plus the theme's
+	// chroma token colors share a single <style> block.
+	codeBlockCSS := codeCSS + "\n\n" + highlightCSS
+
 	return fmt.Sprintf(
 		htmlTemplate,
 		title,             // %s - title
 		bigCSS,            // %s - big.css
 		themeCSS,          // %s - theme CSS
+		codeBlockCSS,      // %s - code block CSS (structural + syntax colors)
 		customCSS,         // %s - aspect ratio script
 		bigJS,             // %s - big.js
 		theme,             // %s - body class (theme)
