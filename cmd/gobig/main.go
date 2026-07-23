@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"gobig/internal/assets"
 	"gobig/internal/generator"
 	"gobig/internal/parser"
+	"gobig/internal/pdf"
 )
 
 const version = "1.0.0"
@@ -29,6 +31,7 @@ var (
 	serve       = flag.Bool("serve", false, "Run as web server instead of generating file")
 	port        = flag.Int("port", 8080, "Port for web server (default: 8080)")
 	watch       = flag.Bool("watch", false, "Watch markdown file for changes and regenerate (only with -serve)")
+	pdfFile     = flag.String("pdf", "", "Export to a PDF file (requires Chrome/Chromium)")
 	showVersion = flag.Bool("version", false, "Show version information")
 	showHelp    = flag.Bool("help", false, "Show help message")
 )
@@ -76,18 +79,71 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Run in serve mode or conversion mode
-	if *serve {
+	if *pdfFile != "" && *serve {
+		fmt.Fprintln(os.Stderr, "Error: -pdf and -serve cannot be used together")
+		os.Exit(1)
+	}
+
+	if *pdfFile != "" && *outputFile != "" {
+		fmt.Fprintln(os.Stderr, "Error: -pdf and -o cannot be used together")
+		os.Exit(1)
+	}
+
+	// Run in the selected mode
+	switch {
+	case *serve:
 		if err := runServer(inputFile); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
-	} else {
+	case *pdfFile != "":
+		if err := runPDF(inputFile); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	default:
 		if err := run(inputFile); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	}
+}
+
+// slideDimensions returns the pixel width and height to render each slide for
+// PDF export, derived from the configured aspect ratio.
+func slideDimensions(aspectRatio string) (int, int) {
+	const width = 1920
+	ratio := 1.6
+	if r, err := strconv.ParseFloat(aspectRatio, 64); err == nil && r > 0 {
+		ratio = r
+	}
+	return width, int(float64(width)/ratio + 0.5)
+}
+
+// runPDF generates the presentation and renders it to a PDF via headless Chrome.
+func runPDF(inputFile string) error {
+	// Use embedded (base64) images so the temp HTML Chrome loads is
+	// self-contained and needs no accompanying files.
+	html, slideCount, err := generateFromFile(inputFile, false)
+	if err != nil {
+		return err
+	}
+
+	width, height := slideDimensions(*aspectRatio)
+
+	fmt.Fprintf(os.Stderr, "Rendering %d slides via headless Chrome...\n", slideCount)
+	if err := pdf.Render(pdf.Options{
+		HTML:       html,
+		SlideCount: slideCount,
+		Width:      width,
+		Height:     height,
+		OutputPath: *pdfFile,
+	}); err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stderr, "Presentation exported: %s (%d pages)\n", *pdfFile, slideCount)
+	return nil
 }
 
 // isRemoteURL reports whether the input source is an http(s) URL rather than a
@@ -149,25 +205,25 @@ func fetchRemoteMarkdown(source string) (string, error) {
 }
 
 // generateFromFile parses a markdown source (local file or remote URL) and
-// generates HTML.
-func generateFromFile(inputFile string, skipBase64 bool) (string, error) {
+// generates HTML. It also returns the number of slides.
+func generateFromFile(inputFile string, skipBase64 bool) (string, int, error) {
 	p := parser.NewParser()
 	var basePath string
 
 	if isRemoteURL(inputFile) {
 		content, err := fetchRemoteMarkdown(inputFile)
 		if err != nil {
-			return "", err
+			return "", 0, err
 		}
 		if err := p.ParseString(content); err != nil {
-			return "", fmt.Errorf("failed to parse remote source: %w", err)
+			return "", 0, fmt.Errorf("failed to parse remote source: %w", err)
 		}
 		// Remote sources have no local base path; relative image references
 		// cannot be resolved, so images should use absolute URLs.
 		basePath = ""
 	} else {
 		if err := p.ParseFile(inputFile); err != nil {
-			return "", fmt.Errorf("failed to parse file: %w", err)
+			return "", 0, fmt.Errorf("failed to parse file: %w", err)
 		}
 		// Get base path for resolving relative image paths
 		abs, err := filepath.Abs(filepath.Dir(inputFile))
@@ -193,15 +249,15 @@ func generateFromFile(inputFile string, skipBase64 bool) (string, error) {
 	gen := generator.NewGenerator(opts)
 	html, err := gen.Generate(slides)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate HTML: %w", err)
+		return "", 0, fmt.Errorf("failed to generate HTML: %w", err)
 	}
 
-	return html, nil
+	return html, len(slides), nil
 }
 
 func run(inputFile string) error {
 	// In file generation mode, use base64 encoding for single-file output
-	html, err := generateFromFile(inputFile, false)
+	html, _, err := generateFromFile(inputFile, false)
 	if err != nil {
 		return err
 	}
@@ -273,7 +329,7 @@ func runServer(inputFile string) error {
 	// Function to generate HTML from markdown
 	generateHTML := func() error {
 		// In serve mode, skip base64 encoding and serve files directly
-		html, err := generateFromFile(inputFile, true)
+		html, _, err := generateFromFile(inputFile, true)
 		if err != nil {
 			mu.Lock()
 			generateError = err
@@ -483,6 +539,7 @@ URLs are supported directly and resolved to their raw contents.
 
 Options:
   -o <file>              Output HTML file (default: stdout)
+  -pdf <file>            Export to a PDF file (requires Chrome/Chromium)
   -theme <name>          Theme: dark, light, or white (default: dark)
   -aspect-ratio <ratio>  Aspect ratio: number or "false" to disable (default: 1.6)
   -title <title>         Presentation title (default: from first slide)
@@ -497,6 +554,9 @@ Examples:
   gobig -o index.html presentation.md
   gobig -theme light -o output.html slides.md
   gobig -aspect-ratio 2 -title "My Talk" -o slides.html talk.md
+
+  # Export to PDF (one slide per page; requires Chrome/Chromium)
+  gobig -pdf slides.pdf presentation.md
 
   # Run as web server
   gobig -serve presentation.md

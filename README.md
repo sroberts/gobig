@@ -17,6 +17,7 @@ A command-line tool to generate [big.js](https://github.com/sroberts/big) presen
 - 🔒 **Self-Contained**: Generates single HTML file with embedded assets
 - 🖼️ **Image Support**: Auto-converts local images to base64 data URIs
 - 🌈 **Syntax Highlighting**: Theme-matched code highlighting baked into the HTML (no JavaScript)
+- 📄 **PDF Export**: Render a deck to a one-slide-per-page PDF for SpeakerDeck/Slideshare
 
 ## Installation
 
@@ -113,6 +114,7 @@ gobig [options] <input.md>
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-o <file>` | Output HTML file | stdout |
+| `-pdf <file>` | Export to a PDF file (requires Chrome/Chromium) | - |
 | `-theme <name>` | Theme: dark, light, or white | dark |
 | `-aspect-ratio <ratio>` | Aspect ratio (number or "false") | 1.6 |
 | `-title <title>` | Presentation title | From first slide |
@@ -176,6 +178,22 @@ gobig -o slides.html https://gist.github.com/sroberts/082105187cf9fd30fbe514559f
 ```
 
 Any URL that returns raw markdown works too (for example, `raw.githubusercontent.com` links). When serving a remote source with `-watch`, gobig polls the URL every few seconds and regenerates when the contents change. Note that remote sources have no local directory, so images must use absolute URLs rather than relative paths.
+
+#### Export to PDF
+
+Use `-pdf` to render a deck to a PDF, one slide per page — handy for uploading to SpeakerDeck, Slideshare, or sharing a static copy:
+
+```bash
+gobig -pdf slides.pdf presentation.md
+
+# Works with themes, aspect ratio, and remote sources
+gobig -pdf slides.pdf -theme light -aspect-ratio 1.78 talk.md
+gobig -pdf slides.pdf https://gist.github.com/sroberts/082105187cf9fd30fbe514559f1f4409
+```
+
+Each page captures a slide exactly as it renders in the browser — including layouts, images, and syntax-highlighted code — at the presentation's aspect ratio.
+
+> **Requires Chrome or Chromium.** PDF export drives a headless browser to render the slides, so a Google Chrome or Chromium install must be available on the machine. This is the only gobig feature with a runtime dependency; generating HTML and serving remain dependency-free. `-pdf` can't be combined with `-o` or `-serve`.
 
 ## Markdown Syntax
 
